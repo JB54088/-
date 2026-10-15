@@ -1,0 +1,172 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="3900" viewBox="0 0 1600 3900">
+  <rect width="1600" height="3900" fill="#f5f7fb"/>
+  <rect x="0" y="0" width="1600" height="210" fill="#17243a"/>
+  <text x="80" y="88" fill="#ffffff" font-size="42" font-weight="700" font-family="PingFang SC,Hiragino Sans GB,STHeiti Medium,Arial Unicode MS,sans-serif">观云春 · 企业客户资产经营平台</text>
+  <text x="82" y="150" fill="#a8bad7" font-size="24" font-family="PingFang SC,Hiragino Sans GB,STHeiti Medium,Arial Unicode MS,sans-serif">系统字段中文说明清单</text>
+
+  <defs>
+    <style>
+      .card { fill:#ffffff; stroke:#e3e9f2; stroke-width:2; }
+      .title { fill:#18263d; font-size:28px; font-weight:700; font-family:PingFang SC,Hiragino Sans GB,STHeiti Medium,Arial Unicode MS,sans-serif; }
+      .sub { fill:#5d6d86; font-size:18px; font-family:PingFang SC,Hiragino Sans GB,STHeiti Medium,Arial Unicode MS,sans-serif; }
+      .label { fill:#1d2b42; font-size:21px; font-weight:600; font-family:PingFang SC,Hiragino Sans GB,STHeiti Medium,Arial Unicode MS,sans-serif; }
+      .desc { fill:#61718a; font-size:19px; font-family:PingFang SC,Hiragino Sans GB,STHeiti Medium,Arial Unicode MS,sans-serif; }
+      .pill { fill:#eaf2ff; }
+      .pilltext { fill:#1c72d8; font-size:17px; font-weight:600; font-family:PingFang SC,Hiragino Sans GB,STHeiti Medium,Arial Unicode MS,sans-serif; }
+      .line { stroke:#edf0f5; stroke-width:2; }
+    </style>
+  </defs>
+
+  <!-- 客户 -->
+  <rect class="card" x="60" y="250" width="720" height="970" rx="20"/>
+  <rect class="pill" x="92" y="282" width="170" height="38" rx="19"/>
+  <text class="pilltext" x="116" y="308">核心业务数据</text>
+  <text class="title" x="92" y="370">客户资料</text>
+  <text class="sub" x="92" y="402">客户档案与外部平台匹配信息</text>
+  <g transform="translate(92,448)">
+    <text class="label" y="0">客户编号</text><text class="desc" x="250" y="0">系统内部唯一编号</text><line class="line" x1="0" y1="25" x2="650" y2="25"/>
+    <text class="label" y="68">外部客户编号</text><text class="desc" x="250" y="68">ABC患者档案号</text><line class="line" x1="0" y1="93" x2="650" y2="93"/>
+    <text class="label" y="136">客户姓名</text><text class="desc" x="250" y="136">客户真实姓名</text><line class="line" x1="0" y1="161" x2="650" y2="161"/>
+    <text class="label" y="204">手机号</text><text class="desc" x="250" y="204">客户联系电话</text><line class="line" x1="0" y1="229" x2="650" y2="229"/>
+    <text class="label" y="272">微信号</text><text class="desc" x="250" y="272">微信标识</text><line class="line" x1="0" y1="297" x2="650" y2="297"/>
+    <text class="label" y="340">性别</text><text class="desc" x="250" y="340">男、女等</text><line class="line" x1="0" y1="365" x2="650" y2="365"/>
+    <text class="label" y="408">年龄</text><text class="desc" x="250" y="408">客户年龄</text><line class="line" x1="0" y1="433" x2="650" y2="433"/>
+    <text class="label" y="476">会员等级</text><text class="desc" x="250" y="476">普通、会员、贵宾等</text><line class="line" x1="0" y1="501" x2="650" y2="501"/>
+    <text class="label" y="544">企业微信状态</text><text class="desc" x="250" y="544">已绑定、未绑定</text><line class="line" x1="0" y1="569" x2="650" y2="569"/>
+    <text class="label" y="612">客户状态</text><text class="desc" x="250" y="612">正常、停用等</text><line class="line" x1="0" y1="637" x2="650" y2="637"/>
+    <text class="label" y="680">客户备注</text><text class="desc" x="250" y="680">管理员补充说明</text><line class="line" x1="0" y1="705" x2="650" y2="705"/>
+    <text class="label" y="748">来源备注</text><text class="desc" x="250" y="748">线索报备时的原始说明</text>
+  </g>
+
+  <!-- 来源 -->
+  <rect class="card" x="820" y="250" width="720" height="970" rx="20"/>
+  <rect class="pill" x="852" y="282" width="170" height="38" rx="19"/>
+  <text class="pilltext" x="876" y="308">分类与归属</text>
+  <text class="title" x="852" y="370">来源与客户归属</text>
+  <text class="sub" x="852" y="402">正式来源由管理员审核确认</text>
+  <g transform="translate(852,448)">
+    <text class="label" y="0">来源归档分类</text><text class="desc" x="250" y="0">地推、线上、线下、活动</text><line class="line" x1="0" y1="25" x2="650" y2="25"/>
+    <text class="label" y="68">来源归档分类</text><text class="desc" x="250" y="68">第三方转介绍、外部来源、其它</text><line class="line" x1="0" y1="93" x2="650" y2="93"/>
+    <text class="label" y="136">最初线索报备人</text><text class="desc" x="250" y="136">永远保留原始线索报备人</text><line class="line" x1="0" y1="161" x2="650" y2="161"/>
+    <text class="label" y="204">当前归属业务员</text><text class="desc" x="250" y="204">当前实际负责业务员</text><line class="line" x1="0" y1="229" x2="650" y2="229"/>
+    <text class="label" y="272">所属部门</text><text class="desc" x="250" y="272">客户当前所属部门</text><line class="line" x1="0" y1="297" x2="650" y2="297"/>
+    <text class="label" y="340">报备时间</text><text class="desc" x="250" y="340">线索报备提交时间</text><line class="line" x1="0" y1="365" x2="650" y2="365"/>
+    <text class="label" y="408">线索状态</text><text class="desc" x="250" y="408">待审核、已审核、已分配等</text><line class="line" x1="0" y1="433" x2="650" y2="433"/>
+    <text class="label" y="476">审核管理员</text><text class="desc" x="250" y="476">完成审核的管理员</text><line class="line" x1="0" y1="501" x2="650" y2="501"/>
+    <text class="label" y="544">审核时间</text><text class="desc" x="250" y="544">审核完成时间</text><line class="line" x1="0" y1="569" x2="650" y2="569"/>
+    <text class="label" y="612">匹配状态</text><text class="desc" x="250" y="612">待匹配、已匹配、冲突</text><line class="line" x1="0" y1="637" x2="650" y2="637"/>
+    <text class="label" y="680">首次到店时间</text><text class="desc" x="250" y="680">客户首次消费或到店时间</text><line class="line" x1="0" y1="705" x2="650" y2="705"/>
+    <text class="label" y="748">最近到店时间</text><text class="desc" x="250" y="748">客户最近消费或到店时间</text>
+  </g>
+
+  <!-- 消费交易 -->
+  <rect class="card" x="60" y="1260" width="1480" height="1110" rx="20"/>
+  <rect class="pill" x="92" y="1292" width="170" height="38" rx="19"/>
+  <text class="pilltext" x="116" y="1318">消费与对账</text>
+  <text class="title" x="92" y="1380">消费交易</text>
+  <text class="sub" x="92" y="1412">收费、退费、医保、自费、抵扣等原始金额全部保留</text>
+  <g transform="translate(92,1460)">
+    <text class="label" y="0">交易编号</text><text class="desc" x="230" y="0">系统交易编号</text>
+    <text class="label" x="760" y="0">外部订单编号</text><text class="desc" x="990" y="0">ABC订单号</text>
+    <line class="line" x1="0" y1="25" x2="1410" y2="25"/>
+    <text class="label" y="68">外部交易流水号</text><text class="desc" x="230" y="68">ABC收费或交易流水</text>
+    <text class="label" x="760" y="68">交易指纹</text><text class="desc" x="990" y="68">防止重复导入</text>
+    <line class="line" x1="0" y1="93" x2="1410" y2="93"/>
+    <text class="label" y="136">诊号</text><text class="desc" x="230" y="136">就诊或业务关联编号</text>
+    <text class="label" x="760" y="136">消费时间</text><text class="desc" x="990" y="136">收费发生时间</text>
+    <line class="line" x1="0" y1="161" x2="1410" y2="161"/>
+    <text class="label" y="204">消费项目</text><text class="desc" x="230" y="204">治疗、药品、零售项目等</text>
+    <text class="label" x="760" y="204">项目分类</text><text class="desc" x="990" y="204">一级、二级、三级分类</text>
+    <line class="line" x1="0" y1="229" x2="1410" y2="229"/>
+    <text class="label" y="272">总金额</text><text class="desc" x="230" y="272">交易总金额</text>
+    <text class="label" x="760" y="272">原价</text><text class="desc" x="990" y="272">项目原始价格</text>
+    <line class="line" x1="0" y1="297" x2="1410" y2="297"/>
+    <text class="label" y="340">应收金额</text><text class="desc" x="230" y="340">应收金额</text>
+    <text class="label" x="760" y="340">实收金额</text><text class="desc" x="990" y="340">ABC原始实收</text>
+    <line class="line" x1="0" y1="365" x2="1410" y2="365"/>
+    <text class="label" y="408">医保支付</text><text class="desc" x="230" y="408">基金支付总额</text>
+    <text class="label" x="760" y="408">自费支付</text><text class="desc" x="990" y="408">非基金或个人支付</text>
+    <line class="line" x1="0" y1="433" x2="1410" y2="433"/>
+    <text class="label" y="476">抵扣金额</text><text class="desc" x="230" y="476">原值保留，负数不丢弃</text>
+    <text class="label" x="760" y="476">核销金额</text><text class="desc" x="990" y="476">核销金额</text>
+    <line class="line" x1="0" y1="501" x2="1410" y2="501"/>
+    <text class="label" y="544">优惠金额</text><text class="desc" x="230" y="544">优惠或折扣金额</text>
+    <text class="label" x="760" y="544">议价金额</text><text class="desc" x="990" y="544">协商或议价金额</text>
+    <line class="line" x1="0" y1="569" x2="1410" y2="569"/>
+    <text class="label" y="612">欠款变动</text><text class="desc" x="230" y="612">欠费变化金额</text>
+    <text class="label" x="760" y="612">支付方式</text><text class="desc" x="990" y="612">现金、医保、微信等</text>
+    <line class="line" x1="0" y1="637" x2="1410" y2="637"/>
+    <text class="label" y="680">交易类型</text><text class="desc" x="230" y="680">正常消费或储值交易</text>
+    <text class="label" x="760" y="680">业务动作</text><text class="desc" x="990" y="680">收费或退费</text>
+    <line class="line" x1="0" y1="705" x2="1410" y2="705"/>
+    <text class="label" y="748">是否退费</text><text class="desc" x="230" y="748">根据业务动作判断</text>
+    <text class="label" x="760" y="748">是否存在消费记录</text><text class="desc" x="990" y="748">不以实收是否为零判断</text>
+    <line class="line" x1="0" y1="773" x2="1410" y2="773"/>
+    <text class="label" y="816">原始支付方式</text><text class="desc" x="230" y="816">保留ABC原文</text>
+    <text class="label" x="760" y="816">原始数据</text><text class="desc" x="990" y="816">完整保留Excel原始行</text>
+  </g>
+
+  <!-- 明细 -->
+  <rect class="card" x="60" y="2430" width="720" height="650" rx="20"/>
+  <rect class="pill" x="92" y="2462" width="170" height="38" rx="19"/>
+  <text class="pilltext" x="116" y="2488">项目明细</text>
+  <text class="title" x="92" y="2550">消费项目明细</text>
+  <g transform="translate(92,2600)">
+    <text class="label" y="0">明细编号</text><text class="desc" x="250" y="0">项目明细编号</text><line class="line" x1="0" y1="25" x2="650" y2="25"/>
+    <text class="label" y="68">所属交易</text><text class="desc" x="250" y="68">对应消费交易</text><line class="line" x1="0" y1="93" x2="650" y2="93"/>
+    <text class="label" y="136">项目名称</text><text class="desc" x="250" y="136">药品、治疗或商品名称</text><line class="line" x1="0" y1="161" x2="650" y2="161"/>
+    <text class="label" y="204">项目编码</text><text class="desc" x="250" y="204">项目或药品编码</text><line class="line" x1="0" y1="229" x2="650" y2="229"/>
+    <text class="label" y="272">数量</text><text class="desc" x="250" y="272">购买数量</text><line class="line" x1="0" y1="297" x2="650" y2="297"/>
+    <text class="label" y="340">单位</text><text class="desc" x="250" y="340">次、盒、支等</text><line class="line" x1="0" y1="365" x2="650" y2="365"/>
+    <text class="label" y="408">单价</text><text class="desc" x="250" y="408">项目单价</text><line class="line" x1="0" y1="433" x2="650" y2="433"/>
+    <text class="label" y="476">明细金额</text><text class="desc" x="250" y="476">客户消费价值统计依据</text>
+  </g>
+
+  <!-- 储值 -->
+  <rect class="card" x="820" y="2430" width="720" height="650" rx="20"/>
+  <rect class="pill" x="852" y="2462" width="170" height="38" rx="19"/>
+  <text class="pilltext" x="876" y="2488">会员储值</text>
+  <text class="title" x="852" y="2550">客户储值余额</text>
+  <g transform="translate(852,2600)">
+    <text class="label" y="0">当前储值余额</text><text class="desc" x="250" y="0">客户当前可用余额</text><line class="line" x1="0" y1="25" x2="650" y2="25"/>
+    <text class="label" y="68">累计充值金额</text><text class="desc" x="250" y="68">会员充值累计</text><line class="line" x1="0" y1="93" x2="650" y2="93"/>
+    <text class="label" y="136">累计退款金额</text><text class="desc" x="250" y="136">会员充值退款累计</text><line class="line" x1="0" y1="161" x2="650" y2="161"/>
+    <text class="label" y="204">累计储值消费</text><text class="desc" x="250" y="204">使用会员余额消费累计</text><line class="line" x1="0" y1="229" x2="650" y2="229"/>
+    <text class="label" y="272">流水类型</text><text class="desc" x="250" y="272">充值、退款、消费、调整</text><line class="line" x1="0" y1="297" x2="650" y2="297"/>
+    <text class="label" y="340">变更前余额</text><text class="desc" x="250" y="340">余额变化前</text><line class="line" x1="0" y1="365" x2="650" y2="365"/>
+    <text class="label" y="408">变更后余额</text><text class="desc" x="250" y="408">余额变化后</text><line class="line" x1="0" y1="433" x2="650" y2="433"/>
+    <text class="label" y="476">来源交易</text><text class="desc" x="250" y="476">关联ABC交易流水</text>
+  </g>
+
+  <!-- 归属历史和标签 -->
+  <rect class="card" x="60" y="3130" width="720" height="530" rx="20"/>
+  <rect class="pill" x="92" y="3162" width="170" height="38" rx="19"/>
+  <text class="pilltext" x="116" y="3188">审计追踪</text>
+  <text class="title" x="92" y="3250">归属变更历史</text>
+  <g transform="translate(92,3300)">
+    <text class="label" y="0">客户</text><text class="desc" x="250" y="0">发生变更的客户</text><line class="line" x1="0" y1="25" x2="650" y2="25"/>
+    <text class="label" y="68">原业务员</text><text class="desc" x="250" y="68">变更前归属</text><line class="line" x1="0" y1="93" x2="650" y2="93"/>
+    <text class="label" y="136">新业务员</text><text class="desc" x="250" y="136">变更后归属</text><line class="line" x1="0" y1="161" x2="650" y2="161"/>
+    <text class="label" y="204">操作管理员</text><text class="desc" x="250" y="204">执行变更的管理员</text><line class="line" x1="0" y1="229" x2="650" y2="229"/>
+    <text class="label" y="272">变更原因</text><text class="desc" x="250" y="272">业务调整、离职等</text><line class="line" x1="0" y1="297" x2="650" y2="297"/>
+    <text class="label" y="340">变更说明</text><text class="desc" x="250" y="340">补充备注</text><line class="line" x1="0" y1="365" x2="650" y2="365"/>
+    <text class="label" y="408">变更时间</text><text class="desc" x="250" y="408">记录生成时间</text>
+  </g>
+
+  <rect class="card" x="820" y="3130" width="720" height="530" rx="20"/>
+  <rect class="pill" x="852" y="3162" width="170" height="38" rx="19"/>
+  <text class="pilltext" x="876" y="3188">配置数据</text>
+  <text class="title" x="852" y="3250">客户标签</text>
+  <g transform="translate(852,3300)">
+    <text class="label" y="0">标签编号</text><text class="desc" x="250" y="0">标签唯一编号</text><line class="line" x1="0" y1="25" x2="650" y2="25"/>
+    <text class="label" y="68">标签名称</text><text class="desc" x="250" y="68">高意向、贵宾等</text><line class="line" x1="0" y1="93" x2="650" y2="93"/>
+    <text class="label" y="136">标签颜色</text><text class="desc" x="250" y="136">页面显示颜色</text><line class="line" x1="0" y1="161" x2="650" y2="161"/>
+    <text class="label" y="204">客户与标签关系</text><text class="desc" x="250" y="204">客户绑定的多个标签</text><line class="line" x1="0" y1="229" x2="650" y2="229"/>
+    <text class="label" y="272">创建时间</text><text class="desc" x="250" y="272">标签生成时间</text><line class="line" x1="0" y1="297" x2="650" y2="297"/>
+    <text class="label" y="340">维护权限</text><text class="desc" x="250" y="340">仅管理员可维护</text>
+  </g>
+
+  <!-- 用户导入报表 -->
+  <rect class="card" x="60" y="3730" width="1480" height="110" rx="20"/>
+  <text class="title" x="92" y="3800">账号、导入、报表字段：账号包含登录账号、姓名、角色、部门、启用状态；导入包含文件、上传人、批次状态、客户匹配数、交易新增数、更新数、跳过数、错误数；报表包含报表类型、起止时间、统计指标、经营总结。</text>
+</svg>

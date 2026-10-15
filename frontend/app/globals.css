@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { --ink: #182230; --muted: #667085; --line: #e7ebf0; --blue: #3488e8; }
+* { box-sizing: border-box; }
+html { background: #f7f9fc; }
+body { margin: 0; color: var(--ink); background: #f7f9fc; font-family: "PingFang SC", "Microsoft YaHei", Inter, system-ui, sans-serif; font-size: 14px; overflow-x: hidden; }
+a { color: inherit; text-decoration: none; }
+button, input, select, textarea { font: inherit; }
+button, input, select, textarea { transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease, color .15s ease; }
+main input:not([type="file"]), main select, main textarea { border-color: var(--line); outline: none; }
+main input:not([type="file"]):focus, main select:focus, main textarea:focus { border-color: #9fcaf3; box-shadow: 0 0 0 3px rgba(52, 136, 232, .10); }
+main section.rounded-2xl { border-radius: 14px; }
+main .shadow-soft { box-shadow: 0 4px 18px rgba(22, 34, 51, .045); }
+main table { border-collapse: separate; border-spacing: 0; }
+main table tbody tr { transition: background-color .15s ease; }
+main table tbody tr:hover { background: #fbfcfe; }
+.page-grid { background-image: linear-gradient(rgba(52, 136, 232, .025) 1px, transparent 1px), linear-gradient(90deg, rgba(52, 136, 232, .025) 1px, transparent 1px); background-size: 32px 32px; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+@media (max-width: 767px) {
+  .mobile-safe { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
+  main section.rounded-2xl { border-radius: 12px; }
+  .page-grid { background-image: none; }
+  button, input, select, textarea { min-height: 44px; }
+}

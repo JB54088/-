@@ -1,0 +1,75 @@
+"use client";
+
+import Link from "next/link";
+import { useEffect, useState } from "react";
+
+import { AppShell, useCurrentUser } from "../../components/app-shell";
+import { formatMoney } from "../../components/charts";
+import { Badge, Empty, Loading, MobileSheet, SectionTitle } from "../../components/ui";
+import { apiFetch } from "../../lib/api";
+import { formatBusinessDateTime24h } from "../../lib/datetime";
+import { SOURCE_CATEGORY_LABELS, SOURCE_LEVEL_1_OPTIONS, SOURCE_LEVEL_2_OPTIONS } from "../../lib/source-categories";
+
+type Meta = { users: { id: number; name: string; role: string }[] };
+type CustomerConsumption = { id: number; name: string; phone?: string | null; source_category?: string | null; source_level_1?: string | null; source_level_2?: string | null; source_custom_name?: string | null; reported_by_name?: string | null; assigned_to_name?: string | null; tags: string[]; status: string; total_amount: number; consumption_amount?: number; actual_paid_amount?: number; effective_revenue?: number; insurance_amount: number | null; self_pay_amount: number | null; order_count: number; last_spend_at?: string | null };
+type CustomerSummaryResponse = { items: CustomerConsumption[]; total: number; total_pages: number; page: number; summary: { customer_count: number; order_count: number; total_amount: number; consumption_amount?: number; actual_paid_amount?: number; effective_revenue?: number; insurance_amount: number | null; self_pay_amount: number | null; payment_split_status?: string } };
+
+const sourceOptions = SOURCE_LEVEL_1_OPTIONS.map((item) => [item.code, item.name] as const);
+const fieldClass = "h-11 rounded-lg border border-[#e7ebf0] bg-white px-3 text-xs text-[#667085] outline-none focus:border-[#3488e8]";
+const fmt = formatBusinessDateTime24h;
+const displayPayment = (value?: number | null) => value == null ? "待核对" : formatMoney(Number(value));
+
+export default function OrdersPage() {
+  const user = useCurrentUser();
+  const isAdmin = user?.role === "admin";
+  const [meta, setMeta] = useState<Meta | null>(null);
+  const [result, setResult] = useState<CustomerSummaryResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [querySearch, setQuerySearch] = useState("");
+  const [assignedTo, setAssignedTo] = useState("");
+  const [sourceCategory, setSourceCategory] = useState("");
+  const [sourceLevel2, setSourceLevel2] = useState("");
+  const [paymentType, setPaymentType] = useState("");
+  const [start, setStart] = useState("");
+  const [end, setEnd] = useState("");
+  const [draftAssignedTo, setDraftAssignedTo] = useState("");
+  const [draftSourceCategory, setDraftSourceCategory] = useState("");
+  const [draftSourceLevel2, setDraftSourceLevel2] = useState("");
+  const [draftPaymentType, setDraftPaymentType] = useState("");
+  const [draftStart, setDraftStart] = useState("");
+  const [draftEnd, setDraftEnd] = useState("");
+  const [page, setPage] = useState(1);
+
+  useEffect(() => { apiFetch<Meta>("/customers/meta").then(setMeta).catch(() => undefined); }, []);
+  useEffect(() => {
+    setLoading(true); setError("");
+    const params = new URLSearchParams({ page: String(page), page_size: "20" });
+    if (querySearch) params.set("search", querySearch);
+    if (assignedTo) params.set("assigned_to_id", assignedTo);
+    if (sourceCategory) params.set("source_level_1", sourceCategory);
+    if (sourceLevel2) params.set("source_level_2", sourceLevel2);
+    if (paymentType) params.set("payment_type", paymentType);
+    if (start) params.set("start", `${start}T00:00:00`);
+    if (end) params.set("end", `${end}T23:59:59`);
+    apiFetch<CustomerSummaryResponse>(`/orders/customer-summary?${params.toString()}`).then(setResult).catch((err) => setError(err instanceof Error ? err.message : "加载消费数据失败")).finally(() => setLoading(false));
+  }, [page, querySearch, assignedTo, sourceCategory, sourceLevel2, paymentType, start, end]);
+
+  const submitSearch = () => { setPage(1); setQuerySearch(search.trim()); };
+  const openFilters = () => { setDraftAssignedTo(assignedTo); setDraftSourceCategory(sourceCategory); setDraftSourceLevel2(sourceLevel2); setDraftPaymentType(paymentType); setDraftStart(start); setDraftEnd(end); setFiltersOpen(true); };
+  const applyFilters = () => { setAssignedTo(draftAssignedTo); setSourceCategory(draftSourceCategory); setSourceLevel2(draftSourceLevel2); setPaymentType(draftPaymentType); setStart(draftStart); setEnd(draftEnd); setPage(1); setFiltersOpen(false); };
+  const resetFilters = () => { setDraftAssignedTo(""); setDraftSourceCategory(""); setDraftSourceLevel2(""); setDraftPaymentType(""); setDraftStart(""); setDraftEnd(""); setAssignedTo(""); setSourceCategory(""); setSourceLevel2(""); setPaymentType(""); setStart(""); setEnd(""); setPage(1); };
+  const activeFilterCount = [assignedTo, sourceCategory, sourceLevel2, paymentType, start, end].filter(Boolean).length;
+  const sourceLevel2Options = (level1: string) => SOURCE_LEVEL_2_OPTIONS[level1 as keyof typeof SOURCE_LEVEL_2_OPTIONS] || [];
+
+  return <AppShell><div className="min-w-0">
+    <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end md:mb-7"><div><div className="mb-2 text-[10px] font-semibold uppercase tracking-[.18em] text-[#3488e8]">CUSTOMER VALUE</div><h1 className="text-[22px] font-semibold tracking-tight text-[#182230] md:text-[25px]">消费管理</h1><p className="mt-1.5 text-sm text-[#98a2b3]">按客户查看累计消费与消费明细，金额来自已导入的 ABC Excel。</p></div>{isAdmin && <Link href="/excel-imports" className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#182230] px-4 py-2.5 text-xs font-medium text-white">上传 ABC Excel</Link>}</div>
+    <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-6">{[["客户数", result?.summary.customer_count || 0, "text-[#182230]"], ["消费次数", result?.summary.order_count || 0, "text-[#182230]"], ["消费价值", formatMoney(result?.summary.consumption_amount ?? result?.summary.total_amount ?? 0, true), "text-[#182230]"], ["有效收入", formatMoney(result?.summary.effective_revenue || 0, true), "text-[#182230]"], ["医保支付", displayPayment(result?.summary.insurance_amount), "text-[#3488e8]"], ["自费支付", displayPayment(result?.summary.self_pay_amount), "text-[#07875f]"]].map(([label, value, tone]) => <div key={String(label)} className="rounded-xl border border-[#e7ebf0] bg-white p-3 shadow-soft md:p-4"><div className="text-[11px] text-[#98a2b3]">{label}</div><div className={`mt-1 truncate text-xl font-semibold ${tone}`}>{value}</div></div>)}</div>
+    <section className="mb-5 rounded-2xl border border-[#e7ebf0] bg-white p-4 shadow-soft"><div className="flex flex-col gap-3 md:flex-row"><div className="flex min-w-0 flex-1 gap-2"><input value={search} onChange={(event) => setSearch(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") submitSearch(); }} placeholder="搜索客户姓名、手机号" className="h-11 min-w-0 flex-1 rounded-lg border border-[#e7ebf0] bg-[#fbfcfe] px-3 text-sm outline-none focus:border-[#3488e8]"/><button onClick={submitSearch} className="min-h-11 rounded-lg bg-[#182230] px-4 text-xs font-medium text-white">搜索</button><button onClick={openFilters} className="min-h-11 rounded-lg border border-[#e7ebf0] px-3 text-xs font-medium text-[#667085] md:hidden">筛选{activeFilterCount ? ` (${activeFilterCount})` : ""}</button></div><div className="hidden flex-wrap gap-2 md:flex"><select value={assignedTo} onChange={(event) => { setAssignedTo(event.target.value); setPage(1); }} disabled={!isAdmin} className={`${fieldClass} min-w-[130px]`}><option value="">全部业务员</option>{meta?.users.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><select value={sourceCategory} onChange={(event) => { setSourceCategory(event.target.value); setPage(1); }} className={`${fieldClass} min-w-[130px]`}><option value="">全部来源归档</option>{sourceOptions.map(([code, label]) => <option key={code} value={code}>{label}</option>)}</select><select value={paymentType} onChange={(event) => { setPaymentType(event.target.value); setPage(1); }} className={fieldClass}><option value="">全部支付</option><option value="insurance">医保支付</option><option value="self_pay">自费支付</option></select><input type="date" value={start} onChange={(event) => { setStart(event.target.value); setPage(1); }} className={fieldClass}/><input type="date" value={end} onChange={(event) => { setEnd(event.target.value); setPage(1); }} className={fieldClass}/></div></div></section>
+    {error && <div className="mb-5 rounded-xl bg-[#fff2f0] px-4 py-3 text-xs text-[#c24e43]">{error}</div>}
+    <section className="rounded-2xl border border-[#e7ebf0] bg-white shadow-soft"><div className="p-4 pb-3 md:p-5 md:pb-3"><SectionTitle title="客户消费资产" description="每个客户一行，订单金额只汇总一次；点击客户可查看完整消费项目。"/></div>{loading ? <Loading label="正在加载客户消费数据"/> : !result?.items.length ? <Empty label="暂无消费数据，请上传 ABC 收费明细 Excel。"/> : <><div className="hidden overflow-x-auto md:block"><table className="w-full min-w-[980px] text-left"><thead className="border-y border-[#f0f2f5] bg-[#fbfcfe] text-[11px] text-[#98a2b3]"><tr><th className="px-5 py-3">客户</th><th className="px-4 py-3">来源 / 标签</th><th className="px-4 py-3">当前归属</th><th className="px-4 py-3">总消费价值</th><th className="px-4 py-3">有效收入</th><th className="px-4 py-3">医保支付</th><th className="px-4 py-3">自费支付</th><th className="px-4 py-3">消费次数</th><th className="px-5 py-3">最近消费</th></tr></thead><tbody className="divide-y divide-[#f0f2f5]">{result.items.map((item) => <tr key={item.id} className="hover:bg-[#fbfcfe]"><td className="px-5 py-4"><Link href={`/customers/${item.id}`} className="text-sm font-medium text-[#182230] hover:text-[#1d6fd1]">{item.name}</Link><div className="mt-1 text-[11px] text-[#98a2b3]">{item.phone || "手机号未提供"}</div></td><td className="px-4 py-4"><div className="text-xs text-[#667085]">{item.source_category ? SOURCE_CATEGORY_LABELS[item.source_category as keyof typeof SOURCE_CATEGORY_LABELS] : "待主管归档"}</div><div className="mt-1 flex flex-wrap gap-1">{item.tags.slice(0, 3).map((tag) => <Badge key={tag} tone="gray">{tag}</Badge>)}</div></td><td className="px-4 py-4 text-xs text-[#667085]">{item.assigned_to_name || "待分配"}</td><td className="px-4 py-4 text-sm font-semibold text-[#182230]">{formatMoney(item.consumption_amount ?? item.total_amount)}</td><td className="px-4 py-4 text-sm font-semibold text-[#182230]">{formatMoney(item.effective_revenue || 0)}</td><td className="px-4 py-4 text-sm text-[#3488e8]">{displayPayment(item.insurance_amount)}</td><td className="px-4 py-4 text-sm text-[#07875f]">{displayPayment(item.self_pay_amount)}</td><td className="px-4 py-4 text-sm text-[#667085]">{item.order_count} 次</td><td className="px-5 py-4 text-xs text-[#667085]">{fmt(item.last_spend_at)}</td></tr>)}</tbody></table></div><div className="divide-y divide-[#f0f2f5] md:hidden">{result.items.map((item) => <Link href={`/customers/${item.id}`} key={item.id} className="block p-4 active:bg-[#fbfcfe]"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><div className="truncate text-[15px] font-semibold text-[#182230]">{item.name}</div><div className="mt-1 truncate text-[11px] text-[#98a2b3]">{item.phone || "手机号未提供"}</div></div><div className="shrink-0 text-[15px] font-semibold text-[#182230]">{formatMoney(item.total_amount)}</div></div><div className="mt-3 flex flex-wrap items-center gap-1.5"><Badge tone="blue">{item.source_category ? SOURCE_CATEGORY_LABELS[item.source_category as keyof typeof SOURCE_CATEGORY_LABELS] : "待主管归档"}</Badge>{item.tags.slice(0, 2).map((tag) => <Badge key={tag} tone="gray">{tag}</Badge>)}</div><div className="mt-3 grid grid-cols-3 gap-2 rounded-lg bg-[#f7f9fc] p-2.5 text-xs"><div><div className="text-[11px] text-[#98a2b3]">有效收入</div><div className="mt-1 font-semibold text-[#182230]">{formatMoney(item.effective_revenue || 0)}</div></div><div><div className="text-[11px] text-[#98a2b3]">医保支付</div><div className="mt-1 font-semibold text-[#3488e8]">{displayPayment(item.insurance_amount)}</div></div><div><div className="text-[11px] text-[#98a2b3]">自费支付</div><div className="mt-1 font-semibold text-[#07875f]">{displayPayment(item.self_pay_amount)}</div></div></div><div className="mt-2 flex justify-between text-[11px] text-[#98a2b3]"><span>归属：{item.assigned_to_name || "待分配"}</span><span>{item.order_count} 次 · {fmt(item.last_spend_at)}</span></div></Link>)}</div><div className="flex items-center justify-between border-t border-[#f0f2f5] px-4 py-4 md:px-5"><span className="text-xs text-[#98a2b3]">第 {result.page} / {result.total_pages || 1} 页，共 {result.total} 位客户</span><div className="flex gap-2"><button disabled={page <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))} className="min-h-10 rounded-lg border border-[#e7ebf0] px-3 text-xs text-[#667085] disabled:opacity-40">上一页</button><button disabled={page >= (result.total_pages || 1)} onClick={() => setPage((value) => value + 1)} className="min-h-10 rounded-lg border border-[#e7ebf0] px-3 text-xs text-[#667085] disabled:opacity-40">下一页</button></div></div></>}</section>
+    <MobileSheet open={filtersOpen} title="筛选客户消费" onClose={() => setFiltersOpen(false)}><div className="space-y-4"><label className="block text-sm font-medium text-[#182230]">归属业务员<select disabled={!isAdmin} value={draftAssignedTo} onChange={(event) => setDraftAssignedTo(event.target.value)} className={`${fieldClass} mt-2 w-full`}><option value="">全部业务员</option>{meta?.users.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label><label className="block text-sm font-medium text-[#182230]">来源归档分类<select value={draftSourceCategory} onChange={(event) => setDraftSourceCategory(event.target.value)} className={`${fieldClass} mt-2 w-full`}><option value="">全部来源归档</option>{sourceOptions.map(([code, label]) => <option key={code} value={code}>{label}</option>)}</select></label><label className="block text-sm font-medium text-[#182230]">支付类型<select value={draftPaymentType} onChange={(event) => setDraftPaymentType(event.target.value)} className={`${fieldClass} mt-2 w-full`}><option value="">全部支付</option><option value="insurance">医保支付</option><option value="self_pay">自费支付</option></select></label><label className="block text-sm font-medium text-[#182230]">开始日期<input type="date" value={draftStart} onChange={(event) => setDraftStart(event.target.value)} className={`${fieldClass} mt-2 w-full`}/></label><label className="block text-sm font-medium text-[#182230]">结束日期<input type="date" value={draftEnd} onChange={(event) => setDraftEnd(event.target.value)} className={`${fieldClass} mt-2 w-full`}/></label><div className="grid grid-cols-2 gap-3 pt-2"><button type="button" onClick={resetFilters} className="min-h-11 rounded-xl border border-[#e7ebf0] text-sm font-medium text-[#667085]">重置</button><button type="button" onClick={applyFilters} className="min-h-11 rounded-xl bg-[#182230] text-sm font-medium text-white">确认筛选</button></div></div></MobileSheet>
+  </div></AppShell>;
+}

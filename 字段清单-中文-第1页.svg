@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1600" viewBox="0 0 1600 1600">
+<rect width="1600" height="1600" fill="#f5f7fb"/><rect width="1600" height="170" fill="#17243a"/>
+<style>
+.t{font-family:PingFang SC,Hiragino Sans GB,STHeiti Medium,Arial Unicode MS,sans-serif}.h{fill:#fff;font-size:38px;font-weight:700}.sh{fill:#adc0dc;font-size:22px}.ct{fill:#18263d;font-size:27px;font-weight:700}.sub{fill:#657691;font-size:18px}.l{fill:#1d2b42;font-size:20px;font-weight:600}.d{fill:#657691;font-size:18px}.line{stroke:#e9edf3;stroke-width:2}.pill{fill:#eaf2ff}.pt{fill:#1c72d8;font-size:16px;font-weight:600}
+</style>
+<text class="t h" x="70" y="72">观云春 · 客户资料与归属字段</text><text class="t sh" x="72" y="122">中文字段说明 · 第 1 页</text>
+<rect x="55" y="210" width="735" height="1040" rx="20" fill="#fff" stroke="#e0e7f1" stroke-width="2"/><rect class="pill" x="88" y="242" width="160" height="36" rx="18"/><text class="t pt" x="111" y="266">客户档案</text><text class="t ct" x="88" y="320">客户基础资料</text><text class="t sub" x="88" y="350">用于识别客户及保存外部匹配信息</text>
+<g transform="translate(88,400)">
+<text class="t l">客户编号</text><text class="t d" x="245">系统内部唯一编号</text><line class="line" x1="0" y1="25" x2="665" y2="25"/>
+<text class="t l" y="66">外部客户编号</text><text class="t d" x="245" y="66">外部平台客户档案号</text><line class="line" x1="0" y1="91" x2="665" y2="91"/>
+<text class="t l" y="132">客户姓名</text><text class="t d" x="245" y="132">客户真实姓名</text><line class="line" x1="0" y1="157" x2="665" y2="157"/>
+<text class="t l" y="198">手机号</text><text class="t d" x="245" y="198">客户联系电话</text><line class="line" x1="0" y1="223" x2="665" y2="223"/>
+<text class="t l" y="264">微信号</text><text class="t d" x="245" y="264">微信标识</text><line class="line" x1="0" y1="289" x2="665" y2="289"/>
+<text class="t l" y="330">性别</text><text class="t d" x="245" y="330">男、女等</text><line class="line" x1="0" y1="355" x2="665" y2="355"/>
+<text class="t l" y="396">年龄</text><text class="t d" x="245" y="396">客户年龄</text><line class="line" x1="0" y1="421" x2="665" y2="421"/>
+<text class="t l" y="462">会员等级</text><text class="t d" x="245" y="462">普通、会员、贵宾等</text><line class="line" x1="0" y1="487" x2="665" y2="487"/>
+<text class="t l" y="528">企业微信状态</text><text class="t d" x="245" y="528">已绑定、未绑定</text><line class="line" x1="0" y1="553" x2="665" y2="553"/>
+<text class="t l" y="594">客户状态</text><text class="t d" x="245" y="594">正常、停用等</text><line class="line" x1="0" y1="619" x2="665" y2="619"/>
+<text class="t l" y="660">客户备注</text><text class="t d" x="245" y="660">管理员补充说明</text><line class="line" x1="0" y1="685" x2="665" y2="685"/>
+<text class="t l" y="726">来源备注</text><text class="t d" x="245" y="726">线索报备时的原始说明</text>
+</g>
+<rect x="815" y="210" width="730" height="1040" rx="20" fill="#fff" stroke="#e0e7f1" stroke-width="2"/><rect class="pill" x="848" y="242" width="160" height="36" rx="18"/><text class="t pt" x="871" y="266">来源归属</text><text class="t ct" x="848" y="320">来源与客户归属</text><text class="t sub" x="848" y="350">正式来源由管理员审核确认</text>
+<g transform="translate(848,400)">
+<text class="t l">来源归档分类</text><text class="t d" x="275">地推、线上、线下、活动</text><line class="line" x1="0" y1="25" x2="665" y2="25"/>
+<text class="t l" y="66">来源归档分类</text><text class="t d" x="275" y="66">第三方转介绍、外部来源、其它</text><line class="line" x1="0" y1="91" x2="665" y2="91"/>
+<text class="t l" y="132">最初线索报备人</text><text class="t d" x="275" y="132">永远保留原始线索报备人</text><line class="line" x1="0" y1="157" x2="665" y2="157"/>
+<text class="t l" y="198">当前归属业务员</text><text class="t d" x="275" y="198">当前实际负责业务员</text><line class="line" x1="0" y1="223" x2="665" y2="223"/>
+<text class="t l" y="264">所属部门</text><text class="t d" x="275" y="264">客户当前所属部门</text><line class="line" x1="0" y1="289" x2="665" y2="289"/>
+<text class="t l" y="330">报备时间</text><text class="t d" x="275" y="330">线索报备提交时间</text><line class="line" x1="0" y1="355" x2="665" y2="355"/>
+<text class="t l" y="396">线索状态</text><text class="t d" x="275" y="396">待审核、已审核、已分配</text><line class="line" x1="0" y1="421" x2="665" y2="421"/>
+<text class="t l" y="462">审核管理员</text><text class="t d" x="275" y="462">完成审核的管理员</text><line class="line" x1="0" y1="487" x2="665" y2="487"/>
+<text class="t l" y="528">审核时间</text><text class="t d" x="275" y="528">审核完成时间</text><line class="line" x1="0" y1="553" x2="665" y2="553"/>
+<text class="t l" y="594">匹配状态</text><text class="t d" x="275" y="594">待匹配、已匹配、冲突</text><line class="line" x1="0" y1="619" x2="665" y2="619"/>
+<text class="t l" y="660">首次到店时间</text><text class="t d" x="275" y="660">首次消费或到店时间</text><line class="line" x1="0" y1="685" x2="665" y2="685"/>
+<text class="t l" y="726">最近到店时间</text><text class="t d" x="275" y="726">最近消费或到店时间</text>
+</g>
+<rect x="55" y="1290" width="1490" height="240" rx="20" fill="#eaf2ff"/><text class="t ct" x="88" y="1350">业务规则</text><text class="t d" x="88" y="1395">最初线索报备人不会因客户重新分配而改变；当前归属业务员可以由管理员修改。</text><text class="t d" x="88" y="1432">业务员只能查看当前归属自己的客户，管理员可以查看全部客户。</text>
+</svg>

@@ -1,0 +1,1 @@
+"""Customer assets platform backend."""

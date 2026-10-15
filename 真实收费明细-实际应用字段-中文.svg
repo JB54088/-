@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1600" viewBox="0 0 1600 1600">
+<rect width="1600" height="1600" fill="#f5f7fb"/><rect width="1600" height="150" fill="#17243a"/>
+<style>
+.t{font-family:PingFang SC,Hiragino Sans GB,STHeiti Medium,Arial Unicode MS,sans-serif}.h{fill:#fff;font-size:36px;font-weight:700}.sh{fill:#adc0dc;font-size:20px}.title{fill:#18263d;font-size:26px;font-weight:700}.sub{fill:#657691;font-size:17px}.label{fill:#1d2b42;font-size:19px;font-weight:600}.desc{fill:#657691;font-size:18px}.small{fill:#657691;font-size:16px}.pill{fill:#eaf2ff}.pt{fill:#1c72d8;font-size:16px;font-weight:600}.warn{fill:#fff7e6}.warntext{fill:#8c6415;font-size:17px}.line{stroke:#e9edf3;stroke-width:2}
+</style>
+<text class="t h" x="70" y="64">真实收费明细表 · 实际应用字段</text><text class="t sh" x="72" y="108">按当前文件的“流水、分类、明细”工作表整理</text>
+
+<rect x="55" y="185" width="1490" height="440" rx="20" fill="#fff" stroke="#e0e7f1" stroke-width="2"/>
+<rect class="pill" x="88" y="217" width="170" height="36" rx="18"/><text class="t pt" x="111" y="241">直接进入系统</text><text class="t title" x="88" y="293">一、流水表：消费交易字段</text><text class="t sub" x="88" y="323">用于匹配客户、判断收费或退费、统计消费和支付</text>
+<g transform="translate(88,350)">
+<text class="t label">客户识别</text><text class="t desc" x="175">收费时间、诊号、患者姓名、患者档案号、手机号</text>
+<text class="t label" y="42">交易判断</text><text class="t desc" x="175" y="42">类型、开单来源、支付方式</text>
+<text class="t label" y="84">金额字段</text><text class="t desc" x="175" y="84">原价、单项议价、核销金额、抵扣金额、优惠</text>
+<text class="t label" y="126">金额字段</text><text class="t desc" x="175" y="126">议价、应收、实收、欠费变更</text>
+<text class="t label" y="168">支付拆分</text><text class="t desc" x="175" y="168">基金支付总额、非基金支付总额</text>
+<text class="t label" y="210">业务信息</text><text class="t desc" x="175" y="210">科室</text>
+<line class="line" x1="0" y1="235" x2="1410" y2="235"/>
+<text class="t small" y="262">这张表写入消费交易；退费依据“类型”判断，实收为零但有项目或抵扣时仍保留。</text>
+</g>
+
+<rect x="55" y="650" width="1490" height="450" rx="20" fill="#fff" stroke="#e0e7f1" stroke-width="2"/>
+<rect class="pill" x="88" y="682" width="170" height="36" rx="18"/><text class="t pt" x="111" y="706">进入项目明细</text><text class="t title" x="88" y="758">二、明细表：消费项目字段</text><text class="t sub" x="88" y="788">用于生成项目明细、计算消费价值和展示数量单价</text>
+<g transform="translate(88,820)">
+<text class="t label">客户识别</text><text class="t desc" x="175">收费时间、诊号、患者姓名、患者档案号、手机号</text>
+<text class="t label" y="38">交易判断</text><text class="t desc" x="175" y="38">类型、开单来源、支付方式、科室</text>
+<text class="t label" y="76">项目分类</text><text class="t desc" x="175" y="76">一级分类、二级分类</text>
+<text class="t label" y="114">项目资料</text><text class="t desc" x="175" y="114">药品/项目名称、药品/项目编码、规格、厂家</text>
+<text class="t label" y="152">数量价格</text><text class="t desc" x="175" y="152">数量、单位、单价、原价</text>
+<text class="t label" y="190">项目金额</text><text class="t desc" x="175" y="190">单项议价、核销金额、抵扣金额、优惠、议价</text>
+<text class="t label" y="228">原始字段</text><text class="t desc" x="175" y="228">实收随原始行保留，但明细金额优先按单价×数量</text>
+<line class="line" x1="0" y1="252" x2="1410" y2="252"/>
+<text class="t small" y="278">项目金额存在时，客户累计消费优先按项目明细金额统计，不因实收为零而丢失消费。</text>
+</g>
+
+<rect x="55" y="1130" width="1490" height="320" rx="20" fill="#fff" stroke="#e0e7f1" stroke-width="2"/>
+<rect class="pill" x="88" y="1162" width="170" height="36" rx="18"/><text class="t pt" x="111" y="1186">辅助识别与留存</text><text class="t title" x="88" y="1215">三、分类表及原始保留字段</text>
+<g transform="translate(88,1255)">
+<text class="t label">分类表实际用途</text><text class="t desc" x="245">费用分类：作为费用分类辅助识别</text>
+<text class="t label" y="45">原始数据保留</text><text class="t desc" x="245" y="45">性别、年龄、初复诊、诊断、开单人、医助</text>
+<text class="t label" y="90">原始数据保留</text><text class="t desc" x="245" y="90">收费备注、患者标签、就诊来源各级分类、就诊备注</text>
+<text class="t label" y="135">原始数据保留</text><text class="t desc" x="245" y="135">转诊医生、人员类型、结算险种、结算类型、医疗类别</text>
+<text class="t label" y="180">当前文件特别说明</text><text class="t desc" x="245" y="180">收费员、开单人不是当前系统的服务人员字段</text>
+</g>
+
+<rect class="warn" x="55" y="1470" width="1490" height="105" rx="18"/><text class="t warntext" x="88" y="1512">系统核心结果：客户匹配、消费交易、项目明细、收费/退费、医保支付、自费支付、抵扣金额、原始数据。</text><text class="t warntext" x="88" y="1545">客户归属、来源归档分类、标签、状态不会被这份表格覆盖。</text>
+</svg>

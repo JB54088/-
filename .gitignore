@@ -1,0 +1,38 @@
+# Local secrets and environment overrides
+.env
+.env.*
+!.env.example
+
+# OS / editor files
+.DS_Store
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.mypy_cache/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+.turbo/
+*.log
+pnpm-debug.log*
+
+# Local package/tool caches and downloaded binaries
+.pnpm-store/
+.tools/
+
+# Local database dumps, exports, and uploaded source files
+backups/
+*.sql
+*.sqlite
+*.sqlite3
+*.db
+*.xlsx
+*.xls
+*.csv
