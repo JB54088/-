@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import inspect, text
 
 from .config import settings
-from .database import SessionLocal, engine
+from .database import Base, SessionLocal, engine
 from . import models  # noqa: F401
 from .routers import auth, customers, dashboard, duplicate_reports, excel_imports, leads, orders, reports, tags, users
 from .agents import business_analysis
