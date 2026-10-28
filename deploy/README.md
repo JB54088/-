@@ -25,6 +25,12 @@ docker compose --env-file deploy/production.env -f docker-compose.production.yml
 curl -fsS http://127.0.0.1:8080/health
 ```
 
+If ECS cannot reach Docker Hub, build the production images on a workstation for
+`linux/amd64`, transfer and load them on ECS, then start Compose with the
+`deploy/compose.production.ecs-amd64.yml` overlay using `--no-build --pull
+never`. The overlay only changes image tags; database, app networking, health
+checks, and the loopback-only Nginx binding stay the same.
+
 The backend runs Alembic migrations and ensures the five application accounts, departments, and built-in customer tags on startup. It does not create demo customers or transactions. Production account passwords are supplied via the five `INITIAL_*_PASSWORD` variables and are not stored in the repository.
 
 To start a temporary HTTPS Quick Tunnel without exposing inbound host ports:
