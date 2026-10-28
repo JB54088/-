@@ -12,13 +12,13 @@ fi
 read_password() {
   local label="$1" value
   while true; do
-    IFS= read -r -s -p "$label (16-128 letters/digits/_/-): " value
+    IFS= read -r -s -p "$label (exactly 11 characters: letters/digits/_/-): " value
     printf '\n'
-    if [[ "$value" =~ ^[A-Za-z0-9_-]{16,128}$ ]]; then
+    if [[ "$value" =~ ^[A-Za-z0-9_-]{11}$ ]]; then
       PASSWORD_RESULT="$value"
       return
     fi
-    echo "Use 16-128 characters from A-Z, a-z, 0-9, underscore, or hyphen."
+    echo "Use exactly 11 characters from A-Z, a-z, 0-9, underscore, or hyphen."
   done
 }
 

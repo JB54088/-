@@ -14,7 +14,7 @@ cd /opt/customer-assets
 bash deploy/init-production-env.sh
 ```
 
-The script prompts for five unique initial account passwords without echoing them, generates separate database/JWT secrets, and writes `deploy/production.env` with mode 600. The seed process uses account passwords only when creating missing users. Keep the env file private. Set the origin to `http://127.0.0.1:8080` for loopback-only verification; for a temporary Quick Tunnel set it to the generated HTTPS origin, and for a customer demonstration use a domain with HTTPS.
+The script prompts for five unique 11-character initial account passwords without echoing them, generates separate database/JWT secrets, and writes `deploy/production.env` with mode 600. The seed process uses account passwords only when creating missing users. Keep the env file private. Set the origin to `http://127.0.0.1:8080` for loopback-only verification; for a temporary Quick Tunnel set it to the generated HTTPS origin, and for a customer demonstration use a domain with HTTPS.
 
 Start in a memory-conscious, serialized build:
 
