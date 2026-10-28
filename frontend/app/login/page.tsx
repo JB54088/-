@@ -3,7 +3,7 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { API_URL } from "../../lib/api";
+import { API_URL, setStoredUser } from "../../lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -19,7 +19,7 @@ export default function LoginPage() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || "账号或密码错误");
       window.localStorage.setItem("customer_assets_token", data.access_token);
-      window.localStorage.setItem("customer_assets_user", JSON.stringify(data.user));
+      setStoredUser(data.user);
       router.replace("/dashboard");
     } catch (err) { setError(err instanceof Error ? err.message : "登录失败"); } finally { setLoading(false); }
   }

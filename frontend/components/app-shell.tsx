@@ -30,7 +30,16 @@ function itemsFor(user: User | null) {
 
 export function useCurrentUser() {
   const [user, setUser] = useState<User | null>(null);
-  useEffect(() => { setUser(getStoredUser()); }, []);
+  useEffect(() => {
+    const refresh = () => setUser(getStoredUser());
+    refresh();
+    window.addEventListener("storage", refresh);
+    window.addEventListener("customer-assets-user-updated", refresh);
+    return () => {
+      window.removeEventListener("storage", refresh);
+      window.removeEventListener("customer-assets-user-updated", refresh);
+    };
+  }, []);
   return user;
 }
 

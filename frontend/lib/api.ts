@@ -1,3 +1,5 @@
+import type { User } from "../types";
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api";
 
 export function getToken() {
@@ -9,6 +11,12 @@ export function getStoredUser() {
   if (typeof window === "undefined") return null;
   const raw = window.localStorage.getItem("customer_assets_user");
   return raw ? JSON.parse(raw) : null;
+}
+
+export function setStoredUser(user: User) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem("customer_assets_user", JSON.stringify(user));
+  window.dispatchEvent(new Event("customer-assets-user-updated"));
 }
 
 export function logout() {

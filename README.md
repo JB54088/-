@@ -38,6 +38,22 @@ docker compose up --build
 | sales02 | `Sales02@123` | 业务员 |
 | sales03 | `Sales03@123` | 业务员 |
 
+## 上线前清理 ABC 测试导入
+
+`backend/scripts/cleanup_abc_test_data.py` 是仅供管理员/运维在容器内执行的一次性维护脚本，不提供 HTTP 清理接口。默认只输出预览，不修改数据库：
+
+```bash
+docker compose exec backend python scripts/cleanup_abc_test_data.py
+```
+
+确认预览范围并完成 PostgreSQL 备份后，显式增加 `--apply` 才会在单个数据库事务中清理 ABC 导入批次、导入交易、明细、待匹配记录、关联储值流水和报告快照。脚本保留人工报备客户、账号、标签配置和来源配置；只有无报备人、无归属且没有人工业务引用的 ABC 临时客户才会删除。无法确认的客户会保留并在预览中列出 ID。
+
+如需建立不含任何客户业务档案的全新演示/上线状态，可使用 `backend/scripts/reset_customer_business_data.py`。该脚本默认只预览，确认 PostgreSQL 备份及删除范围后才显式传入 `--apply`；会清空客户、客户历史、消费/导入记录、重复报备、报告和 AI 查询日志，同时保留用户、部门、客户标签定义、来源配置及数据库结构。
+
+## 业务员修改显示姓名
+
+业务员可在“我的”页面修改自己的显示姓名。登录账号、角色和权限不会由此接口修改。后端接口为 `PATCH /api/auth/me/profile`，请求体只接受 `display_name`；显示姓名通过 `users.full_name` 保存，其他客户、归属历史、看板和报告页面仍按用户 ID 读取当前姓名。
+
 ## 数据链路
 
 ```text

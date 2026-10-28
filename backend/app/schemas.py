@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 
 
 LeadStatus = Literal["pending", "reviewed", "unassigned", "assigned", "approved", "converted", "rejected"]
@@ -31,6 +31,22 @@ class UserBrief(BaseModel):
     role: str
     department_id: int | None = None
     department_name: str | None = None
+
+
+class UserProfileUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    display_name: str = Field(max_length=80)
+
+    @field_validator("display_name")
+    @classmethod
+    def normalize_display_name(cls, value: str) -> str:
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("姓名不能为空")
+        if len(normalized) > 80:
+            raise ValueError("姓名不能超过80个字符")
+        return normalized
 
 
 class TokenResponse(BaseModel):
