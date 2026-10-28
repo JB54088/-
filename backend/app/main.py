@@ -5,7 +5,7 @@ from alembic import command
 from alembic.config import Config
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import text
+from sqlalchemy import inspect, text
 
 from .config import settings
 from .database import SessionLocal, engine
@@ -40,7 +40,17 @@ def startup() -> None:
         except Exception:
             time.sleep(1)
     alembic_config = Config(str(Path(__file__).resolve().parents[1] / "alembic.ini"))
-    command.upgrade(alembic_config, "head")
+    existing_tables = set(inspect(engine).get_table_names())
+    if not existing_tables:
+        # The initial migration creates the current metadata, while historical
+        # follow-up migrations assume legacy columns that do not exist on a
+        # brand-new database. Bootstrap the current schema once, then mark the
+        # migration history at head. Existing databases still use normal
+        # incremental Alembic upgrades below.
+        Base.metadata.create_all(bind=engine)
+        command.stamp(alembic_config, "head")
+    else:
+        command.upgrade(alembic_config, "head")
     # Startup may ensure system accounts/config, but must never create demo
     # customers, orders, reports, or import records.
     with SessionLocal() as db:
