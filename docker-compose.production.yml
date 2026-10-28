@@ -1,0 +1,104 @@
+name: customer-assets
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?set POSTGRES_DB in deploy/production.env}
+      POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in deploy/production.env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in deploy/production.env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+      start_period: 10s
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?set JWT_SECRET_KEY in deploy/production.env}
+      JWT_EXPIRE_MINUTES: ${JWT_EXPIRE_MINUTES:-720}
+      CORS_ORIGINS: ${APP_ORIGIN:?set APP_ORIGIN in deploy/production.env}
+      INITIAL_ADMIN01_PASSWORD: ${INITIAL_ADMIN01_PASSWORD:?set INITIAL_ADMIN01_PASSWORD in deploy/production.env}
+      INITIAL_ADMIN02_PASSWORD: ${INITIAL_ADMIN02_PASSWORD:?set INITIAL_ADMIN02_PASSWORD in deploy/production.env}
+      INITIAL_SALES01_PASSWORD: ${INITIAL_SALES01_PASSWORD:?set INITIAL_SALES01_PASSWORD in deploy/production.env}
+      INITIAL_SALES02_PASSWORD: ${INITIAL_SALES02_PASSWORD:?set INITIAL_SALES02_PASSWORD in deploy/production.env}
+      INITIAL_SALES03_PASSWORD: ${INITIAL_SALES03_PASSWORD:?set INITIAL_SALES03_PASSWORD in deploy/production.env}
+      EXCEL_MAX_FILE_SIZE_MB: ${EXCEL_MAX_FILE_SIZE_MB:-20}
+      EXCEL_MAX_ROWS: ${EXCEL_MAX_ROWS:-50000}
+      AI_PROVIDER: ${AI_PROVIDER:-mock}
+      AI_BASE_URL: ${AI_BASE_URL:-}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_MODEL: ${AI_MODEL:-business-analysis-mock}
+      AI_MOCK_MODE: ${AI_MOCK_MODE:-true}
+      TZ: Asia/Shanghai
+    expose:
+      - "8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: /api
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: /api
+      NODE_ENV: production
+      TZ: Asia/Shanghai
+    expose:
+      - "3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/login').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 20s
+      timeout: 8s
+      retries: 5
+      start_period: 60s
+
+  proxy:
+    image: nginx:1.30-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - ./deploy/nginx.production.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/ || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: ["tunnel", "--no-autoupdate", "--url", "http://proxy:80"]
+    profiles: ["quick-tunnel"]
+    depends_on:
+      proxy:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

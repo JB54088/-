@@ -6,6 +6,11 @@ class Settings(BaseSettings):
     jwt_secret_key: str = "change-me-in-production"
     jwt_expire_minutes: int = 1440
     cors_origins: str = "http://localhost:3000,http://127.0.0.1:3000"
+    initial_admin01_password: str = "Admin01@123"
+    initial_admin02_password: str = "Admin02@123"
+    initial_sales01_password: str = "Sales01@123"
+    initial_sales02_password: str = "Sales02@123"
+    initial_sales03_password: str = "Sales03@123"
     excel_max_file_size_mb: int = 20
     excel_max_rows: int = 50000
     # Retained only as deprecated configuration for recovering the old adapter;

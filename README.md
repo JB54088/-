@@ -18,6 +18,8 @@ docker compose up --build
 
 同一局域网内的同事请访问运行 Docker 的这台电脑：`http://<当前局域网IP>:3000`（当前地址为 `http://192.168.50.80:3000`），也可以尝试局域网主机名 `http://wzhdeMac-mini.local:3000`。局域网 IP 可能因 Wi-Fi/DHCP 变化，请在运行 Docker 的电脑上执行 `ipconfig getifaddr en1` 或 `ipconfig getifaddr en0` 获取最新地址。前端 API 使用同源 `/api` 代理，不会请求同事电脑自己的 localhost。若无法打开，请确认双方连接同一 Wi-Fi，且不是访客 Wi-Fi、VPN 或开启了客户端隔离的网络。
 
+阿里云 ECS 生产部署说明见 [`deploy/README.md`](deploy/README.md)。生产 Compose 与本机开发 Compose 分开：生产数据库不发布端口，Web 代理默认只监听本机回环地址，可按需启用临时 HTTPS Quick Tunnel。
+
 首次启动会自动执行 Alembic 迁移，并确保 5 个系统账号、团队和基础客户标签配置存在；不会自动生成任何 Demo 客户、订单、报表或 Excel 导入记录。当前数据库清理后可直接上传真实 ABC Excel。
 
 客户来源统一保存为 `source_category`，允许的 code 与中文名称为：`field_sales`（地推）、`online`（线上）、`offline`（线下）、`event`（活动）、`third_party_referral`（第三方转介绍）、`external`（外部来源）、`other`（其它）。旧 `source` 字段仍保留原始值，用于历史追溯，不参与业务筛选和统计。

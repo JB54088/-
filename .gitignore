@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+deploy/production.env
 
 # OS / editor files
 .DS_Store

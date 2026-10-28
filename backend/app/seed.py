@@ -5,6 +5,7 @@ from decimal import Decimal
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
+from .config import settings
 from .models import Customer, CustomerAssignmentHistory, CustomerTag, CustomerTagRelation, Department, ExcelImportBatch, ExcelImportUnmatchedRecord, IntegrationLog, Order, OrderItem, Report, Store, User
 from .security import hash_password
 from .source_categories import normalize_source_category, normalize_source_level_1
@@ -43,6 +44,13 @@ def ensure_system_data(db: Session) -> None:
     account_departments = {"sales01": "客户增长组", "sales02": "私域运营组", "sales03": "高客经营组"}
     account_names = {"admin01": "林总", "admin02": "陈主管", "sales01": "王明", "sales02": "苏晴", "sales03": "叶宁"}
     account_roles = {"admin01": "admin", "admin02": "admin", "sales01": "salesperson", "sales02": "salesperson", "sales03": "salesperson"}
+    initial_passwords = {
+        "admin01": settings.initial_admin01_password,
+        "admin02": settings.initial_admin02_password,
+        "sales01": settings.initial_sales01_password,
+        "sales02": settings.initial_sales02_password,
+        "sales03": settings.initial_sales03_password,
+    }
     existing_users = {user.username: user for user in db.scalars(select(User)).all()}
     for username, full_name in account_names.items():
         if username in existing_users:
@@ -50,7 +58,7 @@ def ensure_system_data(db: Session) -> None:
         db.add(User(
             username=username,
             full_name=full_name,
-            password_hash=hash_password(PASSWORDS[username]),
+            password_hash=hash_password(initial_passwords[username]),
             role=account_roles[username],
             department=departments.get(account_departments.get(username)),
         ))
