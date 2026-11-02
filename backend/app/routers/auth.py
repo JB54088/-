@@ -20,7 +20,7 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse
     user = db.scalar(select(User).options(joinedload(User.department)).where(User.username == payload.username))
     if not user or not user.is_active or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=401, detail="账号或密码错误")
-    return TokenResponse(access_token=create_access_token(user.id), user=user_brief(user))
+    return TokenResponse(access_token=create_access_token(user.id, remember_me=payload.remember_me), user=user_brief(user))
 
 
 @router.get("/me", response_model=UserBrief)

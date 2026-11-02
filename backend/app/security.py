@@ -27,8 +27,9 @@ def verify_password(password: str, stored: str) -> bool:
         return False
 
 
-def create_access_token(user_id: int) -> str:
-    expires = datetime.now(timezone.utc) + timedelta(minutes=settings.jwt_expire_minutes)
+def create_access_token(user_id: int, remember_me: bool = False) -> str:
+    lifetime = timedelta(days=30) if remember_me else timedelta(minutes=settings.jwt_expire_minutes)
+    expires = datetime.now(timezone.utc) + lifetime
     return jwt.encode({"sub": str(user_id), "exp": expires}, settings.jwt_secret_key, algorithm=ALGORITHM)
 
 

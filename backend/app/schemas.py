@@ -22,6 +22,7 @@ PoolMatchStatus = Literal["pending", "matched", "conflict", "manual_required"]
 class LoginRequest(BaseModel):
     username: str
     password: str
+    remember_me: bool = False
 
 
 class UserBrief(BaseModel):

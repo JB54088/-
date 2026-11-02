@@ -1,21 +1,63 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { API_URL, setStoredUser } from "../../lib/api";
+import { API_URL, getToken, logout, setStoredUser } from "../../lib/api";
+
+const REMEMBER_LOGIN_KEY = "customer_assets_remember_login";
+const REMEMBERED_USERNAME_KEY = "customer_assets_remembered_username";
 
 export default function LoginPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    const shouldRemember = window.localStorage.getItem(REMEMBER_LOGIN_KEY) === "true";
+    setRememberMe(shouldRemember);
+    if (shouldRemember) setUsername(window.localStorage.getItem(REMEMBERED_USERNAME_KEY) || "");
+
+    const token = getToken();
+    if (!token) {
+      setCheckingSession(false);
+      return;
+    }
+
+    let active = true;
+    fetch(`${API_URL}/auth/me`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" })
+      .then(async (response) => {
+        if (!active) return;
+        if (response.ok) {
+          setStoredUser(await response.json());
+          router.replace("/dashboard");
+        } else if (response.status === 401) {
+          logout();
+        }
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (active) setCheckingSession(false);
+      });
+
+    return () => { active = false; };
+  }, [router]);
+
   async function submit(event: FormEvent) {
     event.preventDefault(); setLoading(true); setError("");
+    if (rememberMe) {
+      window.localStorage.setItem(REMEMBER_LOGIN_KEY, "true");
+      window.localStorage.setItem(REMEMBERED_USERNAME_KEY, username.trim());
+    } else {
+      window.localStorage.removeItem(REMEMBER_LOGIN_KEY);
+      window.localStorage.removeItem(REMEMBERED_USERNAME_KEY);
+    }
     try {
-      const response = await fetch(`${API_URL}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, password }) });
+      const response = await fetch(`${API_URL}/auth/login`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: username.trim(), password, remember_me: rememberMe }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.detail || "账号或密码错误");
       window.localStorage.setItem("customer_assets_token", data.access_token);
@@ -30,6 +72,6 @@ export default function LoginPage() {
       <div className="relative"><div className="mb-12 flex items-center gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-[14px] bg-white/10 text-lg font-bold">观</div><div><div className="font-semibold tracking-tight">观云春</div><div className="text-[9px] tracking-[.24em] text-white/50">ASSET OPERATING</div></div></div><div className="max-w-md"><div className="mb-5 text-xs font-medium tracking-[.24em] text-[#75b9ff]">CUSTOMER ASSET OPERATING SYSTEM</div><h1 className="text-4xl font-semibold leading-[1.18] tracking-tight">让每一位客户，<br/><span className="text-[#75b9ff]">成为可经营的资产。</span></h1><p className="mt-6 text-sm leading-7 text-white/60">统一客户、归属、消费和复购数据，把分散的经营动作变成清晰的增长决策。</p></div></div>
       <div className="relative grid grid-cols-3 gap-4 border-t border-white/10 pt-6 text-white/70"><div><div className="text-2xl font-semibold text-white">200+</div><div className="mt-1 text-xs">演示客户档案</div></div><div><div className="text-2xl font-semibold text-white">1,000</div><div className="mt-1 text-xs">消费记录已接入</div></div><div><div className="text-2xl font-semibold text-white">5</div><div className="mt-1 text-xs">经营团队部门</div></div></div>
     </section>
-    <section className="flex flex-1 items-center justify-center bg-[#f7f9fc] px-6 py-12"><div className="w-full max-w-[390px] rounded-3xl bg-white p-7 shadow-soft sm:p-10"><div className="mb-9"><div className="mb-2 text-2xl font-semibold tracking-tight text-[#182230]">欢迎回来</div><p className="text-sm text-[#98a2b3]">登录客户线索与资产经营工作台</p></div><form onSubmit={submit} className="space-y-5"><label className="block"><span className="mb-2 block text-xs font-medium text-[#667085]">账号</span><input value={username} onChange={(event) => setUsername(event.target.value)} className="h-12 w-full rounded-xl border border-[#e7ebf0] bg-[#fbfcfe] px-4 text-sm outline-none transition focus:border-[#3488e8] focus:ring-4 focus:ring-[#3488e8]/10" placeholder="输入登录账号" autoComplete="username"/></label><label className="block"><div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium text-[#667085]">密码</span></div><input value={password} onChange={(event) => setPassword(event.target.value)} type="password" className="h-12 w-full rounded-xl border border-[#e7ebf0] bg-[#fbfcfe] px-4 text-sm outline-none transition focus:border-[#3488e8] focus:ring-4 focus:ring-[#3488e8]/10" placeholder="输入登录密码" autoComplete="current-password"/></label>{error && <div className="rounded-xl bg-[#fff2f0] px-4 py-3 text-xs text-[#d7473f]">{error}</div>}<button disabled={loading} className="h-12 w-full rounded-xl bg-[#1d6fd1] text-sm font-semibold text-white shadow-lg shadow-[#1d6fd1]/20 transition hover:bg-[#1556a8] disabled:cursor-not-allowed disabled:opacity-60">{loading ? "正在登录…" : "登录工作台"}</button></form><p className="mt-8 text-center text-[11px] leading-5 text-[#b0b7c3]">登录即表示你同意平台使用规范<br/>企业微信 H5 登录能力将在后续版本接入</p></div></section>
+    <section className="flex flex-1 items-center justify-center bg-[#f7f9fc] px-6 py-12"><div className="w-full max-w-[390px] rounded-3xl bg-white p-7 shadow-soft sm:p-10"><div className="mb-9"><div className="mb-2 text-2xl font-semibold tracking-tight text-[#182230]">欢迎回来</div><p className="text-sm text-[#98a2b3]">登录客户线索与资产经营工作台</p></div><form onSubmit={submit} autoComplete="on" className="space-y-5"><label className="block"><span className="mb-2 block text-xs font-medium text-[#667085]">账号</span><input name="username" value={username} onChange={(event) => setUsername(event.target.value)} className="h-12 w-full rounded-xl border border-[#e7ebf0] bg-[#fbfcfe] px-4 text-sm outline-none transition focus:border-[#3488e8] focus:ring-4 focus:ring-[#3488e8]/10" placeholder="输入登录账号" autoComplete="username" required/></label><label className="block"><div className="mb-2 flex items-center justify-between"><span className="text-xs font-medium text-[#667085]">密码</span></div><input name="password" value={password} onChange={(event) => setPassword(event.target.value)} type="password" className="h-12 w-full rounded-xl border border-[#e7ebf0] bg-[#fbfcfe] px-4 text-sm outline-none transition focus:border-[#3488e8] focus:ring-4 focus:ring-[#3488e8]/10" placeholder="输入登录密码" autoComplete="current-password" required/></label><label className="flex cursor-pointer items-start gap-2 text-xs text-[#667085]"><input type="checkbox" checked={rememberMe} onChange={(event) => setRememberMe(event.target.checked)} className="mt-0.5 h-4 w-4 rounded border-[#d0d5dd] accent-[#1d6fd1]"/><span><span className="font-medium text-[#475467]">记住登录</span><span className="ml-1 text-[#98a2b3]">本设备保持登录 30 天</span><span className="mt-1 block text-[11px] text-[#98a2b3]">密码由浏览器密码管理器保存并自动填充；仅在个人设备勾选</span></span></label>{error && <div className="rounded-xl bg-[#fff2f0] px-4 py-3 text-xs text-[#d7473f]">{error}</div>}<button disabled={loading || checkingSession} className="h-12 w-full rounded-xl bg-[#1d6fd1] text-sm font-semibold text-white shadow-lg shadow-[#1d6fd1]/20 transition hover:bg-[#1556a8] disabled:cursor-not-allowed disabled:opacity-60">{checkingSession ? "正在检查登录状态…" : loading ? "正在登录…" : "登录工作台"}</button></form><p className="mt-8 text-center text-[11px] leading-5 text-[#b0b7c3]">登录即表示你同意平台使用规范<br/>企业微信 H5 登录能力将在后续版本接入</p></div></section>
   </main>;
 }
