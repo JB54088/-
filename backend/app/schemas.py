@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 LeadStatus = Literal["pending", "reviewed", "unassigned", "assigned", "approved", "converted", "rejected"]
@@ -67,8 +67,8 @@ class BulkAssignmentRequest(AssignmentRequest):
 
 
 class LeadCreate(BaseModel):
-    name: str = Field(min_length=1, max_length=80)
-    phone: str = Field(min_length=5, max_length=30)
+    name: str | None = Field(default=None, min_length=1, max_length=80)
+    phone: str | None = Field(default=None, min_length=5, max_length=30)
     wechat_id: str | None = Field(default=None, max_length=80)
     gender: str | None = Field(default=None, max_length=10)
     source_note: str | None = Field(default=None, max_length=500, validation_alias=AliasChoices("source_note", "source"))
@@ -81,6 +81,19 @@ class LeadCreate(BaseModel):
     tag_ids: list[int] = Field(default_factory=list, max_length=20)
     assigned_to: int | None = None
     submission_id: str | None = Field(default=None, max_length=100, validation_alias=AliasChoices("submission_id", "idempotency_key"))
+
+    @field_validator("name", "phone", mode="before")
+    @classmethod
+    def empty_identity_to_none(cls, value):
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
+
+    @model_validator(mode="after")
+    def require_name_or_phone(self):
+        if not (self.name and self.name.strip()) and not (self.phone and self.phone.strip()):
+            raise ValueError("客户姓名和手机号至少填写一项")
+        return self
 
 
 class LeadReviewRequest(BaseModel):
@@ -211,7 +224,7 @@ class PoolMatchCandidateResponse(BaseModel):
 class LeadListItem(BaseModel):
     id: int
     name: str
-    phone: str
+    phone: str | None = None
     wechat_id: str | None = None
     gender: str | None = None
     source_category: SourceCategory | None = None

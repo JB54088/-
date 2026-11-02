@@ -181,17 +181,21 @@ def create_lead(payload: LeadCreate, db: Session = Depends(get_db), user: User =
     if existing_duplicate_report:
         raise HTTPException(status_code=409, detail="该客户已存在，已提交管理员确认。")
 
-    normalized_phone = normalize_phone(payload.phone)
-    if not normalized_phone:
+    normalized_name = payload.name.strip() if payload.name and payload.name.strip() else None
+    raw_phone = payload.phone.strip() if payload.phone and payload.phone.strip() else None
+    normalized_phone = normalize_phone(raw_phone)
+    if raw_phone and not normalized_phone:
         raise HTTPException(status_code=400, detail="请输入有效手机号")
+    if not normalized_name and not normalized_phone:
+        raise HTTPException(status_code=400, detail="客户姓名和手机号至少填写一项")
     normalized_wechat = payload.wechat_id.strip() if payload.wechat_id and payload.wechat_id.strip() else None
     duplicate = find_duplicate_customer(db, normalized_phone, normalized_wechat)
     if duplicate:
         db.add(
             DuplicateLeadReport(
                 existing_customer_id=duplicate.customer.id,
-                reported_name=payload.name.strip(),
-                reported_phone=normalized_phone,
+                reported_name=normalized_name or "未填写姓名",
+                reported_phone=normalized_phone or "",
                 reported_wechat=normalized_wechat,
                 new_reported_by_id=user.id,
                 duplicate_reason=duplicate.reason,
@@ -208,7 +212,7 @@ def create_lead(payload: LeadCreate, db: Session = Depends(get_db), user: User =
     # The server, not the browser, owns the business submission timestamp.
     now = utc_now()
     customer = Customer(
-        name=payload.name.strip(),
+        name=normalized_name or "未填写姓名",
         phone=normalized_phone,
         wechat_id=normalized_wechat,
         gender=payload.gender,

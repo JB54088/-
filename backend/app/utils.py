@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
+import unicodedata
 
 from sqlalchemy import Select, and_, case, func, not_, or_, select
 
@@ -26,6 +27,16 @@ def normalize_phone(value: str | None) -> str | None:
     elif digits.startswith("86") and len(digits) == 13:
         digits = digits[2:]
     return digits or None
+
+
+def normalize_customer_name(value: str | None) -> str | None:
+    """Normalize a name for exact, unique identity matching only."""
+    if not value:
+        return None
+    normalized = "".join(unicodedata.normalize("NFKC", value).casefold().split())
+    if not normalized or normalized in {"未填写姓名", "待识别外部客户"}:
+        return None
+    return normalized
 
 
 def is_admin(user: User) -> bool:

@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session, selectinload
 from ...consumption import consumption_count_query, consumption_value_expression
 from ...balance import rebuild_customer_balance, resolve_balance_operation, resolve_balance_payment_amount, resolve_is_refund, sync_order_balance
 from ...models import Customer, CustomerPoolMatchHistory, Department, ExcelImportBatch, ExcelImportUnmatchedRecord, IntegrationLog, Order, OrderItem, Store
-from ...utils import consumption_key_expression, consumption_order_condition, is_external_placeholder, normalize_phone
+from ...utils import consumption_key_expression, consumption_order_condition, is_external_placeholder, normalize_customer_name, normalize_phone
 from .parser import NormalizedTransaction, ParseResult, parse_excel
 
 
@@ -84,7 +84,13 @@ def _transaction_from_dict(value: dict[str, Any]) -> NormalizedTransaction:
 
 
 def _identity_key(transaction: NormalizedTransaction) -> str:
-    return f"external:{transaction.external_customer_id}" if transaction.external_customer_id else f"phone:{normalize_phone(transaction.phone) or transaction.transaction_fingerprint}"
+    if transaction.external_customer_id:
+        return f"external:{transaction.external_customer_id}"
+    if normalized_phone := normalize_phone(transaction.phone):
+        return f"phone:{normalized_phone}"
+    if normalized_name := normalize_customer_name(transaction.name):
+        return f"name:{normalized_name}"
+    return f"record:{transaction.transaction_fingerprint}"
 
 
 def _placeholder_external_id(customer: Customer) -> str | None:
@@ -116,15 +122,35 @@ def _find_external_placeholder(db: Session, transaction: NormalizedTransaction) 
         if len(external_matches) > 1:
             return None
     normalized_phone = normalize_phone(transaction.phone)
-    if not normalized_phone:
+    normalized_name = normalize_customer_name(transaction.name)
+    phone_matches = [item for item in placeholders if normalized_phone and normalize_phone(item.phone) == normalized_phone]
+    name_matches = [item for item in placeholders if normalized_name and normalize_customer_name(item.name) == normalized_name]
+    if len(phone_matches) > 1 or len(name_matches) > 1:
         return None
-    phone_matches = [item for item in placeholders if normalize_phone(item.phone) == normalized_phone]
-    if len(phone_matches) != 1:
+    phone_match = phone_matches[0] if phone_matches else None
+    name_match = name_matches[0] if name_matches else None
+    if phone_match and name_match and phone_match.id != name_match.id:
         return None
-    candidate_external_id = _placeholder_external_id(phone_matches[0])
+    candidate = phone_match or name_match
+    if not candidate:
+        return None
+    candidate_external_id = _placeholder_external_id(candidate)
     if external_id and candidate_external_id and candidate_external_id != external_id:
         return None
-    return phone_matches[0]
+    return candidate
+
+
+def _name_only_unmatched_ids(db: Session, normalized_name: str | None) -> list[int]:
+    if not normalized_name:
+        return []
+    rows = db.execute(
+        select(ExcelImportUnmatchedRecord.id, ExcelImportUnmatchedRecord.name).where(
+            ExcelImportUnmatchedRecord.status.in_(["pending", "conflict"]),
+            ExcelImportUnmatchedRecord.external_customer_id.is_(None),
+            ExcelImportUnmatchedRecord.phone.is_(None),
+        )
+    ).all()
+    return [record_id for record_id, name in rows if normalize_customer_name(name) == normalized_name]
 
 
 def _create_external_placeholder(db: Session, transaction: NormalizedTransaction) -> Customer:
@@ -168,41 +194,48 @@ def _create_external_placeholder(db: Session, transaction: NormalizedTransaction
 
 
 def match_customer(db: Session, transaction: NormalizedTransaction) -> CustomerMatch:
-    """Match external facts without ever using name as the sole identity."""
+    """Match by external ID, then unique phone, then unique exact name."""
     normalized_phone = normalize_phone(transaction.phone)
-    phone_candidates: list[Customer] = []
-    if normalized_phone:
-        phone_candidates = [
-            customer
-            for customer in db.scalars(select(Customer).where(Customer.phone.is_not(None), Customer.lead_status != "rejected", Customer.is_deleted.is_(False))).all()
-            if normalize_phone(customer.phone) == normalized_phone and not is_external_placeholder(customer)
-        ]
+    normalized_name = normalize_customer_name(transaction.name)
+    active_customers = db.scalars(
+        select(Customer).where(Customer.lead_status != "rejected", Customer.is_deleted.is_(False))
+    ).all() if normalized_phone or normalized_name else []
+    formal_customers = [customer for customer in active_customers if not is_external_placeholder(customer)]
+    phone_candidates = [customer for customer in formal_customers if normalized_phone and normalize_phone(customer.phone) == normalized_phone]
+    name_candidates = [customer for customer in formal_customers if normalized_name and normalize_customer_name(customer.name) == normalized_name]
 
     if transaction.external_customer_id:
         customer = db.scalar(select(Customer).where(Customer.external_customer_id == transaction.external_customer_id, Customer.is_deleted.is_(False)))
         if customer:
             if is_external_placeholder(customer):
                 return CustomerMatch("pending_external", customer, "已保存为待关联外部客户", "pending", "external_customer_id")
-            if len(phone_candidates) > 1 or any(candidate.id != customer.id for candidate in phone_candidates):
-                return CustomerMatch("conflict", None, "患者档案号与手机号分别指向不同客户")
+            if len(phone_candidates) > 1 or len(name_candidates) > 1 or any(candidate.id != customer.id for candidate in [*phone_candidates, *name_candidates]):
+                return CustomerMatch("conflict", None, "患者档案号、手机号或姓名分别指向不同客户")
             if normalized_phone and customer.phone and normalize_phone(customer.phone) != normalized_phone:
                 return CustomerMatch("conflict", None, "患者档案号匹配成功，但手机号存在冲突")
             return CustomerMatch("matched", customer, "external_customer_id", "auto", "external_customer_id")
 
-    if normalized_phone:
-        if len(phone_candidates) > 1:
-            return CustomerMatch("conflict", None, "手机号匹配到多个内部客户")
-        if len(phone_candidates) == 1:
-            customer = phone_candidates[0]
-            if (
-                transaction.external_customer_id
-                and customer.external_customer_id
-                and customer.external_customer_id != transaction.external_customer_id
-            ):
-                return CustomerMatch("conflict", None, "手机号客户已绑定另一个 ABC 患者档案号")
-            return CustomerMatch("matched", customer, "normalized_phone", "auto", "phone")
+    if len(phone_candidates) > 1:
+        if len(name_candidates) == 1 and name_candidates[0] in phone_candidates:
+            customer = name_candidates[0]
+            return CustomerMatch("matched", customer, "姓名唯一匹配", "auto", "name")
+        return CustomerMatch("conflict", None, "手机号匹配到多个内部客户")
+    if len(phone_candidates) == 1:
+        customer = phone_candidates[0]
+        if len(name_candidates) > 1 or any(candidate.id != customer.id for candidate in name_candidates):
+            return CustomerMatch("conflict", None, "手机号与姓名分别指向不同客户")
+        if transaction.external_customer_id and customer.external_customer_id and customer.external_customer_id != transaction.external_customer_id:
+            return CustomerMatch("conflict", None, "手机号客户已绑定另一个 ABC 患者档案号")
+        return CustomerMatch("matched", customer, "normalized_phone", "auto", "phone")
+    if len(name_candidates) > 1:
+        return CustomerMatch("conflict", None, "姓名匹配到多个内部客户")
+    if len(name_candidates) == 1:
+        customer = name_candidates[0]
+        if transaction.external_customer_id and customer.external_customer_id and customer.external_customer_id != transaction.external_customer_id:
+            return CustomerMatch("conflict", None, "姓名匹配客户已绑定另一个 ABC 患者档案号")
+        return CustomerMatch("matched", customer, "姓名唯一匹配", "auto", "name")
 
-    return CustomerMatch("unmatched", None, "未找到外部客户 ID 或唯一手机号匹配")
+    return CustomerMatch("unmatched", None, "未找到外部客户 ID、唯一手机号或唯一姓名匹配")
 
 
 def _existing_order(db: Session, transaction: NormalizedTransaction) -> Order | None:
@@ -333,8 +366,8 @@ def _unmatched_group_key(record: ExcelImportUnmatchedRecord) -> tuple[str, str]:
     """Build the customer-level key used by the pending-review surface.
 
     An external patient ID always wins.  Phone is only a fallback when the
-    row has no external ID.  A name is deliberately never used as a grouping
-    identity because two people can share the same name.
+    row has no external ID.  Exact name is the final fallback when neither
+    stable identifier is available, matching the lead intake rule.
     """
     external_id = str(record.external_customer_id or "").strip()
     if external_id:
@@ -342,6 +375,9 @@ def _unmatched_group_key(record: ExcelImportUnmatchedRecord) -> tuple[str, str]:
     normalized_phone = normalize_phone(record.phone)
     if normalized_phone:
         return "phone", normalized_phone
+    normalized_name = normalize_customer_name(record.name)
+    if normalized_name:
+        return "name", normalized_name
     return "record", str(record.id)
 
 
@@ -709,23 +745,43 @@ def link_pending_external_customer(db: Session, customer: Customer) -> Customer 
     transaction keeps historical totals and item details intact.
     """
     normalized_phone = normalize_phone(customer.phone)
-    if not normalized_phone:
+    normalized_name = normalize_customer_name(customer.name)
+    if not normalized_phone and not normalized_name:
         return None
     # A voided customer starts a new business identity.  Do not silently
     # carry an old ABC-only placeholder into the replacement lead; its
     # imported facts remain available for an explicit administrator migration.
-    deleted_phones = db.scalars(
-        select(Customer.phone).where(
-            Customer.phone.is_not(None),
-            Customer.is_deleted.is_(True),
-        )
+    deleted_identity = db.execute(
+        select(Customer.phone, Customer.name).where(Customer.is_deleted.is_(True))
     ).all()
-    if any(normalize_phone(phone) == normalized_phone for phone in deleted_phones):
+    deleted_phones = [phone for phone, _ in deleted_identity if phone]
+    deleted_names = [name for _, name in deleted_identity if name]
+    if normalized_phone and any(normalize_phone(phone) == normalized_phone for phone in deleted_phones):
         return None
-    placeholders = [item for item in _external_placeholders(db) if item.id != customer.id and normalize_phone(item.phone) == normalized_phone]
-    if len(placeholders) != 1:
+    placeholders = [item for item in _external_placeholders(db) if item.id != customer.id]
+    phone_matches = [item for item in placeholders if normalized_phone and normalize_phone(item.phone) == normalized_phone]
+    name_matches = [item for item in placeholders if normalized_name and normalize_customer_name(item.name) == normalized_name]
+    if len(phone_matches) > 1 or len(name_matches) > 1:
         return None
-    placeholder = placeholders[0]
+    phone_match = phone_matches[0] if phone_matches else None
+    name_match = name_matches[0] if name_matches else None
+    if phone_match and name_match and phone_match.id != name_match.id:
+        return None
+    placeholder = phone_match or name_match
+    if not placeholder:
+        return None
+    matched_by = "phone" if phone_match else "name"
+    if matched_by == "name":
+        if any(normalize_customer_name(name) == normalized_name for name in deleted_names):
+            return None
+        same_name_customers = [
+            item for item in db.scalars(
+                select(Customer).where(Customer.is_deleted.is_(False), Customer.lead_status != "rejected")
+            ).all()
+            if not is_external_placeholder(item) and normalize_customer_name(item.name) == normalized_name
+        ]
+        if len(same_name_customers) != 1 or same_name_customers[0].id != customer.id:
+            return None
     external_id = _placeholder_external_id(placeholder)
     if external_id:
         existing = db.scalar(select(Customer).where(Customer.external_customer_id == external_id, Customer.id.not_in([placeholder.id, customer.id]), Customer.is_deleted.is_(False)))
@@ -738,6 +794,11 @@ def link_pending_external_customer(db: Session, customer: Customer) -> Customer 
         placeholder.external_customer_id = None
         db.flush()
         customer.external_customer_id = external_id
+
+    if not normalized_name and normalize_customer_name(placeholder.name):
+        customer.name = placeholder.name
+    if not normalized_phone and normalize_phone(placeholder.phone):
+        customer.phone = normalize_phone(placeholder.phone)
 
     orders = db.scalars(select(Order).where(Order.customer_id == placeholder.id)).all()
     for order in orders:
@@ -761,7 +822,11 @@ def link_pending_external_customer(db: Session, customer: Customer) -> Customer 
                 )
             )
     else:
-        unresolved_identity.append(ExcelImportUnmatchedRecord.phone == normalized_phone)
+        if normalized_phone:
+            unresolved_identity.append(ExcelImportUnmatchedRecord.phone == normalized_phone)
+    name_only_ids = _name_only_unmatched_ids(db, normalized_name)
+    if name_only_ids:
+        unresolved_identity.append(ExcelImportUnmatchedRecord.id.in_(name_only_ids))
     db.execute(
         update(ExcelImportUnmatchedRecord)
         .where(
@@ -771,7 +836,7 @@ def link_pending_external_customer(db: Session, customer: Customer) -> Customer 
         .values(
             customer_id=customer.id,
             status="bound",
-            resolution_note="线索报备后按唯一手机号自动关联",
+            resolution_note=f"线索报备后按唯一{ '手机号' if matched_by == 'phone' else '姓名' }自动关联",
             resolved_at=datetime.now().replace(microsecond=0),
         )
     )
@@ -798,10 +863,10 @@ def link_pending_external_customer(db: Session, customer: Customer) -> Customer 
     db.add(CustomerPoolMatchHistory(
         customer_id=customer.id,
         external_customer_id=external_id,
-        match_type="auto_lead_phone",
+        match_type=f"auto_lead_{matched_by}",
         previous_status="pending",
         new_status="matched",
-        note="线索报备后按唯一手机号自动关联 ABC 历史消费",
+        note=f"线索报备后按唯一{ '手机号' if matched_by == 'phone' else '姓名' }自动关联 ABC 历史消费",
     ))
     db.delete(placeholder)
     db.flush()
@@ -863,6 +928,10 @@ def _resolve_unmatched_records_for_match(
             )
     elif normalized_phone:
         identity_conditions.append(ExcelImportUnmatchedRecord.phone == normalized_phone)
+    normalized_name = normalize_customer_name(transaction.name)
+    name_only_ids = _name_only_unmatched_ids(db, normalized_name)
+    if name_only_ids:
+        identity_conditions.append(ExcelImportUnmatchedRecord.id.in_(name_only_ids))
     if not identity_conditions:
         return 0
     result = db.execute(
@@ -893,7 +962,21 @@ def _unmatched_group_records(db: Session, record: ExcelImportUnmatchedRecord) ->
             ExcelImportUnmatchedRecord.phone == normalized_phone,
         )
     else:
-        identity = ExcelImportUnmatchedRecord.id == record.id
+        normalized_name = normalize_customer_name(record.name)
+        if not normalized_name:
+            identity = ExcelImportUnmatchedRecord.id == record.id
+        else:
+            name_only_records = db.scalars(
+                select(ExcelImportUnmatchedRecord)
+                .options(selectinload(ExcelImportUnmatchedRecord.batch))
+                .where(
+                    ExcelImportUnmatchedRecord.status.in_(["pending", "conflict"]),
+                    ExcelImportUnmatchedRecord.external_customer_id.is_(None),
+                    ExcelImportUnmatchedRecord.phone.is_(None),
+                )
+                .order_by(ExcelImportUnmatchedRecord.created_at, ExcelImportUnmatchedRecord.id)
+            ).all()
+            return [item for item in name_only_records if normalize_customer_name(item.name) == normalized_name]
     return db.scalars(
         select(ExcelImportUnmatchedRecord)
         .options(selectinload(ExcelImportUnmatchedRecord.batch))

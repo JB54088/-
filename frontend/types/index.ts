@@ -144,7 +144,7 @@ export type BalanceTransaction = {
   created_at: string;
 };
 
-export type Lead = { id: number; name: string; phone: string; wechat_id?: string | null; gender?: string | null; source_category?: SourceCategoryCode | null; source_level_1?: SourceLevel1Code | null; source_level_2?: SourceLevel2Code | null; source_custom_name?: string | null; source_note?: string | null; notes?: string | null; reported_by_name?: string | null; reported_at?: string | null; assigned_to_name?: string | null; lead_status: string; tags: string[]; total_spend: number; order_count: number };
+export type Lead = { id: number; name: string; phone?: string | null; wechat_id?: string | null; gender?: string | null; source_category?: SourceCategoryCode | null; source_level_1?: SourceLevel1Code | null; source_level_2?: SourceLevel2Code | null; source_custom_name?: string | null; source_note?: string | null; notes?: string | null; reported_by_name?: string | null; reported_at?: string | null; assigned_to_name?: string | null; lead_status: string; tags: string[]; total_spend: number; order_count: number };
 
 export type DuplicateLeadReport = {
   id: number;
