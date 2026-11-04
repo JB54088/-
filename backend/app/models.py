@@ -37,6 +37,21 @@ class User(TimestampMixin, Base):
     assignment_changes: Mapped[list["CustomerAssignmentHistory"]] = relationship(back_populates="changed_by_user", foreign_keys="CustomerAssignmentHistory.changed_by_id")
 
 
+class LoginAuditLog(Base):
+    """One row per submitted login attempt; password material is never retained."""
+
+    __tablename__ = "login_audit_logs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), index=True)
+    username: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
+    full_name: Mapped[str | None] = mapped_column(String(80))
+    role: Mapped[str | None] = mapped_column(String(30))
+    success: Mapped[bool] = mapped_column(Boolean, nullable=False, index=True)
+    failure_reason: Mapped[str | None] = mapped_column(String(40))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
+
+
 class Store(TimestampMixin, Base):
     __tablename__ = "stores"
 

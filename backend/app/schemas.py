@@ -20,9 +20,29 @@ PoolMatchStatus = Literal["pending", "matched", "conflict", "manual_required"]
 
 
 class LoginRequest(BaseModel):
-    username: str
+    username: str = Field(min_length=1, max_length=80)
     password: str
     remember_me: bool = False
+
+
+class LoginAuditLogItem(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    user_id: int | None = None
+    username: str
+    full_name: str | None = None
+    role: str | None = None
+    success: bool
+    failure_reason: str | None = None
+    created_at: datetime
+
+
+class LoginAuditLogPage(BaseModel):
+    items: list[LoginAuditLogItem]
+    total: int
+    limit: int
+    offset: int
 
 
 class UserBrief(BaseModel):
