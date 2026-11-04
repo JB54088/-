@@ -78,7 +78,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     router.replace("/login");
   };
 
-  const currentTitle = pathname.startsWith("/profile") ? "我的" : pathname.startsWith("/tags") ? "客户标签" : pathname.startsWith("/users") ? "用户权限" : pathname.startsWith("/login-logs") ? "登录日志" : pathname.startsWith("/assignment-history") ? "归属变更历史" : pathname.startsWith("/duplicate-reports") ? "重复报备" : pathname.startsWith("/excel-imports") ? "ABC Excel 导入" : pathname.startsWith("/customers/") ? "客户详情" : visibleNavItems.find((item) => isActive(pathname, item.href))?.label || "工作台";
+  const currentTitle = pathname.startsWith("/profile") ? "我的" : pathname.startsWith("/tags") ? "客户标签" : pathname.startsWith("/users") ? "用户权限" : pathname.startsWith("/assignment-history") ? "归属变更历史" : pathname.startsWith("/duplicate-reports") ? "重复报备" : pathname.startsWith("/excel-imports") ? "ABC Excel 导入" : pathname.startsWith("/customers/") ? "客户详情" : visibleNavItems.find((item) => isActive(pathname, item.href))?.label || "工作台";
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#f7f9fc]">
@@ -98,7 +98,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="mb-2 mt-6 px-3 text-[10px] font-semibold uppercase tracking-[.16em] text-[#98a2b3]">配置</div>
           <Link href="/tags" className={`flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium ${pathname.startsWith("/tags") ? "bg-[#eaf4ff] text-[#1d6fd1]" : "text-[#667085] hover:bg-[#f7f9fc]"}`}><Icon name="tag" size={18}/><span>客户标签</span></Link>
           <Link href="/users" className={`mt-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium ${pathname.startsWith("/users") ? "bg-[#eaf4ff] text-[#1d6fd1]" : "text-[#667085] hover:bg-[#f7f9fc]"}`}><Icon name="users" size={18}/><span>用户权限</span></Link>
-          <Link href="/login-logs" className={`mt-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium ${pathname.startsWith("/login-logs") ? "bg-[#eaf4ff] text-[#1d6fd1]" : "text-[#667085] hover:bg-[#f7f9fc]"}`}><Icon name="history" size={18}/><span>登录日志</span></Link>
           <Link href="/assignment-history" className={`mt-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium ${pathname.startsWith("/assignment-history") ? "bg-[#eaf4ff] text-[#1d6fd1]" : "text-[#667085] hover:bg-[#f7f9fc]"}`}><Icon name="history" size={18}/><span>归属变更历史</span></Link>
           <Link href="/duplicate-reports" className={`mt-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium ${pathname.startsWith("/duplicate-reports") ? "bg-[#eaf4ff] text-[#1d6fd1]" : "text-[#667085] hover:bg-[#f7f9fc]"}`}><Icon name="leads" size={18}/><span>重复报备</span></Link>
           <Link href="/excel-imports" className={`mt-1 flex min-h-10 items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium ${pathname.startsWith("/excel-imports") ? "bg-[#eaf4ff] text-[#1d6fd1]" : "text-[#667085] hover:bg-[#f7f9fc]"}`}><Icon name="upload" size={18}/><span>ABC Excel 导入</span></Link>
