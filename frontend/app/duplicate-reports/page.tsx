@@ -56,11 +56,11 @@ export default function DuplicateReportsPage() {
     setActionId(report.id);
     setError("");
     try {
-      await apiFetch(`/duplicate-reports/${report.id}/review`, {
+      const result = await apiFetch<{ message: string }>(`/duplicate-reports/${report.id}/review`, {
         method: "POST",
         body: JSON.stringify({ action, review_note: reviewNote.trim() || null }),
       });
-      setMessage(action === "not_duplicate" ? "已创建新的待审核线索" : `已${actionText}`);
+      setMessage(action === "not_duplicate" ? result.message : `已${actionText}`);
       setReviewNote("");
       load();
     } catch (err) {
@@ -73,7 +73,7 @@ export default function DuplicateReportsPage() {
   return <AppShell><div>
     <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end md:mb-7">
       <div><div className="mb-2 text-[10px] font-semibold uppercase tracking-[.18em] text-[#3488e8]">DUPLICATE REPORTS</div><h1 className="text-[22px] font-semibold tracking-tight text-[#182230] md:text-[25px]">重复报备</h1><p className="mt-1.5 text-sm text-[#98a2b3]">查看线索提交时命中的重复客户，确认是否为同一客户。</p></div>
-      <Link href="/leads" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-[#d5e7fa] bg-white px-4 py-2.5 text-xs font-medium text-[#1d6fd1]">返回线索审核</Link>
+      <Link href="/leads" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-[#d5e7fa] bg-white px-4 py-2.5 text-xs font-medium text-[#1d6fd1]">返回线索报备</Link>
     </div>
 
     <section className="mb-5 rounded-2xl border border-[#e7ebf0] bg-white p-4 shadow-soft md:p-5">

@@ -7,7 +7,8 @@ from sqlalchemy.orm import Session, aliased
 
 from ..database import get_db
 from ..deps import require_admin
-from ..models import Customer, DuplicateLeadReport, User
+from ..integrations.excel_import.service import link_pending_external_customer
+from ..models import Customer, CustomerAssignmentHistory, DuplicateLeadReport, User
 from ..schemas import DuplicateLeadReviewRequest
 
 router = APIRouter(prefix="/duplicate-reports", tags=["重复报备"])
@@ -125,11 +126,16 @@ def review_duplicate_report(
 
     reviewed_at = datetime.now().replace(microsecond=0)
     new_lead_id = None
+    not_duplicate_message = "已确认不是同一客户，已创建未分配客户"
     try:
         if payload.action == "not_duplicate":
-            # The administrator explicitly confirmed that the identity match
-            # is a false positive, so create a fresh pending lead. It remains
-            # unassigned until the normal lead-review workflow completes.
+            # The administrator confirmed this is a different person. Create a
+            # new formal customer and assign it directly to the original
+            # salesperson reporter, matching the current no-review workflow.
+            reporter = db.get(User, report.new_reported_by_id)
+            if not reporter or not reporter.is_active:
+                raise HTTPException(status_code=409, detail="原线索报备人账号已停用，无法自动归属；请先确认归属业务员")
+            assigned_to_id = reporter.id if reporter.role == "salesperson" else None
             customer = Customer(
                 name=report.reported_name,
                 phone=report.reported_phone,
@@ -140,14 +146,30 @@ def review_duplicate_report(
                 notes="经管理员确认不是同一客户",
                 reported_by_id=report.new_reported_by_id,
                 reported_at=report.created_at,
-                lead_status="pending",
+                assigned_to_id=assigned_to_id,
+                department_id=reporter.department_id if assigned_to_id else None,
+                lead_status="assigned" if assigned_to_id else "unassigned",
                 status="active",
                 member_level="普通",
                 submission_id=f"resolved-duplicate-{uuid4().hex}",
             )
             db.add(customer)
             db.flush()
+            if assigned_to_id:
+                db.add(
+                    CustomerAssignmentHistory(
+                        customer_id=customer.id,
+                        previous_salesperson_id=None,
+                        new_salesperson_id=assigned_to_id,
+                        changed_by_id=reviewer.id,
+                        change_reason="重复报备确认后首次分配",
+                        change_note="管理员确认不是同一客户，客户直接归属原线索报备业务员",
+                    )
+                )
+            link_pending_external_customer(db, customer)
             new_lead_id = customer.id
+            if assigned_to_id:
+                not_duplicate_message = "已确认不是同一客户，已创建客户并归属线索报备人"
 
         report.status = {
             "confirm_duplicate": "confirmed_duplicate",
@@ -164,7 +186,7 @@ def review_duplicate_report(
 
     messages = {
         "confirm_duplicate": "已确认为重复报备，保留原客户",
-        "not_duplicate": "已确认不是同一客户，已创建新的待审核线索",
+        "not_duplicate": not_duplicate_message,
         "reject": "已驳回重复报备记录",
     }
     return {

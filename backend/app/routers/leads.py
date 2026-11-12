@@ -80,7 +80,7 @@ def list_pending_leads(
     db: Session = Depends(get_db),
     user: User = Depends(require_admin),
 ):
-    """The admin review queue is intentionally limited to pending leads."""
+    """Keep the queue for legacy pending leads; new reports are assigned immediately."""
     return _list_leads(search, "pending", reported_by_id, page, page_size, db, user)
 
 
@@ -111,7 +111,7 @@ def list_my_leads(
 
 def _list_leads(search, status, reported_by_id, page, page_size, db: Session, user: User):
     query = _lead_query()
-    conditions = [Customer.is_deleted.is_(False)]
+    conditions = [Customer.is_deleted.is_(False), Customer.reported_by_id.is_not(None)]
     if not is_admin(user):
         conditions.append(Customer.reported_by_id == user.id)
     elif reported_by_id:
@@ -172,7 +172,7 @@ def create_lead(payload: LeadCreate, db: Session = Depends(get_db), user: User =
     existing_submission = db.scalar(select(Customer).where(Customer.submission_id == submission_id, Customer.is_deleted.is_(False)))
     if existing_submission:
         if existing_submission.reported_by_id == user.id:
-            message = "客户已创建并进入市场部客户管理" if is_admin_creator else "客户线索已提交，等待主管审核"
+            message = "客户已创建并进入市场部客户管理" if is_admin_creator else "线索已提交并进入您的客户池"
             return {"message": message, "lead_id": existing_submission.id, "status": existing_submission.lead_status}
         # A key supplied by another account must never become a customer lookup.
         raise HTTPException(status_code=409, detail="该提交请求已处理，请勿重复提交")
@@ -225,9 +225,9 @@ def create_lead(payload: LeadCreate, db: Session = Depends(get_db), user: User =
         notes=payload.notes,
         reported_by_id=user.id,
         reported_at=now,
-        assigned_to_id=admin_assignee.id if admin_assignee else None,
-        department_id=admin_assignee.department_id if admin_assignee else None,
-        lead_status="approved" if is_admin_creator and admin_assignee else ("unassigned" if is_admin_creator else "pending"),
+        assigned_to_id=(admin_assignee.id if admin_assignee else None) if is_admin_creator else user.id,
+        department_id=(admin_assignee.department_id if admin_assignee else None) if is_admin_creator else user.department_id,
+        lead_status=("approved" if admin_assignee else "unassigned") if is_admin_creator else "assigned",
         reviewed_by_id=user.id if is_admin_creator else None,
         reviewed_at=now if is_admin_creator else None,
         status="active",
@@ -251,19 +251,30 @@ def create_lead(payload: LeadCreate, db: Session = Depends(get_db), user: User =
                         change_note="管理员创建客户线索时直接分配业务员",
                     )
                 )
+        else:
+            db.add(
+                CustomerAssignmentHistory(
+                    customer_id=customer.id,
+                    previous_salesperson_id=None,
+                    new_salesperson_id=user.id,
+                    changed_by_id=user.id,
+                    change_reason="线索报备时自动归属报备人",
+                    change_note="线索提交后直接进入报备业务员的客户池",
+                )
+            )
         link_pending_external_customer(db, customer)
         db.commit()
     except IntegrityError:
         db.rollback()
         existing_submission = db.scalar(select(Customer).where(Customer.submission_id == submission_id, Customer.is_deleted.is_(False)))
         if existing_submission and existing_submission.reported_by_id == user.id:
-            return {"message": "客户线索已提交，等待主管审核", "lead_id": existing_submission.id, "status": existing_submission.lead_status}
+            return {"message": "线索已提交并进入您的客户池", "lead_id": existing_submission.id, "status": existing_submission.lead_status}
         raise HTTPException(status_code=409, detail="该提交请求已处理，请勿重复提交")
     db.refresh(customer)
     if is_admin_creator:
         message = "客户已创建并进入市场部客户管理" if admin_assignee else "客户已创建，当前待分配业务员"
     else:
-        message = "客户线索已提交，等待主管审核"
+        message = "线索已提交并进入您的客户池"
     return {"message": message, "lead_id": customer.id, "status": customer.lead_status}
 
 

@@ -78,7 +78,7 @@ class Customer(TimestampMixin, Base):
     age: Mapped[int | None] = mapped_column(Integer)
     # Retain the raw/legacy value for history; business filters use source_category.
     source: Mapped[str | None] = mapped_column(String(50), index=True)
-    # source is retained as the raw/legacy value; source_category is selected by an admin during review.
+    # source is retained as the raw/legacy value; source_category is formal classification metadata.
     source_category: Mapped[str | None] = mapped_column(String(40), default=None, nullable=True, index=True)
     # New two-level source archive. source_category remains as a legacy
     # compatibility value while these fields are authoritative.

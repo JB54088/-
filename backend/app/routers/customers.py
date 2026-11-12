@@ -169,18 +169,20 @@ def _owner_asset_summary(db: Session, owner_id: int | None, period_start: dateti
     ``assigned_to_id`` is the only ownership dimension used here.  The
     reporter remains an audit field and never affects customer-pool totals.
     Period figures use Order.paid_at, while new-customer figures use the
-    formal-customer approval timestamp reviewed_at.
+    customer entry timestamp: reviewed_at for legacy reviewed leads, with
+    reported_at as the timestamp for leads that enter directly after reporting.
     """
     formal = formal_customer_condition()
     owner = Customer.assigned_to_id == owner_id if owner_id is not None else Customer.assigned_to_id.is_(None)
     customer_conditions = [formal, owner]
 
     customer_count = int(db.scalar(select(func.count(Customer.id)).select_from(Customer).where(*customer_conditions)) or 0)
-    month_new_customers = int(db.scalar(select(func.count(Customer.id)).select_from(Customer).where(*customer_conditions, Customer.reviewed_at >= period_start, Customer.reviewed_at <= period_end)) or 0)
+    entry_at = func.coalesce(Customer.reviewed_at, Customer.reported_at)
+    month_new_customers = int(db.scalar(select(func.count(Customer.id)).select_from(Customer).where(*customer_conditions, entry_at >= period_start, entry_at <= period_end)) or 0)
     total_consumption = money(db.scalar(select(func.coalesce(func.sum(metrics.c.total_spend), 0)).select_from(Customer).outerjoin(metrics, metrics.c.customer_id == Customer.id).where(*customer_conditions)))
     total_revenue = money(db.scalar(select(func.coalesce(func.sum(metrics.c.effective_revenue), 0)).select_from(Customer).outerjoin(metrics, metrics.c.customer_id == Customer.id).where(*customer_conditions)))
     high_value_customers = int(db.scalar(select(func.count(Customer.id)).select_from(Customer).outerjoin(metrics, metrics.c.customer_id == Customer.id).where(*customer_conditions, metrics.c.total_spend >= 1000)) or 0)
-    recent_new_customer_at = db.scalar(select(func.max(Customer.reviewed_at)).where(*customer_conditions))
+    recent_new_customer_at = db.scalar(select(func.max(entry_at)).where(*customer_conditions))
 
     order_scope = [formal, owner, Order.paid_at >= period_start, Order.paid_at <= period_end]
     month_consumption = money(db.scalar(select(func.coalesce(func.sum(consumption_value_expression()), 0)).select_from(Order).join(Customer, Customer.id == Order.customer_id).where(*order_scope)))
@@ -284,7 +286,7 @@ def list_customers(
     if conditions:
         query = query.where(and_(*conditions))
     sort_expr = {
-        "reviewed_at": Customer.reviewed_at,
+        "reviewed_at": func.coalesce(Customer.reviewed_at, Customer.reported_at),
         "created_at": Customer.created_at,
         "name": Customer.name,
         "total_spend": func.coalesce(metrics.c.total_spend, 0),

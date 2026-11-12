@@ -12,7 +12,7 @@ export const roleLabels: Record<Role, string> = { admin: "管理员 / 主管", s
 
 const adminNav = [
   { href: "/dashboard", label: "经营看板", icon: "dashboard" },
-  { href: "/leads", label: "线索审核", icon: "leads" },
+  { href: "/leads", label: "线索报备", icon: "leads" },
   { href: "/customers", label: "市场部客户管理", icon: "users" },
   { href: "/orders", label: "消费管理", icon: "orders" },
 ];
@@ -56,7 +56,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     ? [
         { ...adminNav[0], label: "首页" },
         { ...adminNav[2], label: "客户" },
-        { ...adminNav[1], label: "分配" },
+        { ...adminNav[1], label: "线索" },
         { href: "/profile", label: "我的", icon: "user" },
       ]
     : [
