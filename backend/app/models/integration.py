@@ -39,6 +39,10 @@ class ExcelImportBatch(TimestampMixin, Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     file_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    oss_bucket: Mapped[str | None] = mapped_column(String(120))
+    oss_object_key: Mapped[str | None] = mapped_column(String(500))
+    file_sha256: Mapped[str | None] = mapped_column(String(64), index=True)
+    file_size_bytes: Mapped[int | None] = mapped_column(Integer)
     uploaded_by_id: Mapped[int] = mapped_column("uploaded_by", ForeignKey("users.id"), index=True, nullable=False)
     uploaded_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
     status: Mapped[str] = mapped_column(String(20), default="preview", nullable=False, index=True)

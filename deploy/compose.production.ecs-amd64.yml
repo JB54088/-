@@ -2,8 +2,6 @@
 # to an ECS host that cannot reach Docker Hub. Build contexts from the base
 # production file remain available, but deploy with --no-build and --pull never.
 services:
-  db:
-    image: customer-assets-postgres:ecs-amd64
   backend:
     image: customer-assets-backend:ecs-amd64
   frontend:

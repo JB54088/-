@@ -222,7 +222,7 @@ erDiagram
 | **交易与储值**<br>(`models/order.py`) | `orders` | `Order` | 诊疗收费、退费与储值原始交易主表（含外部流水号、交易指纹、原价/应收/实收/抵扣/优惠/医保/自费、`transaction_kind`、`is_refund`） |
 | | `order_items` | `OrderItem` | 订单收费项目明细表（三级项目分类、编码、单价、数量、`amount`） |
 | | `customer_balance_transactions` | `CustomerBalanceTransaction` | 客户级会员储值不可变流水台账（`recharge`/`refund`/`consume`/`adjustment`、`balance_before`/`after`） |
-| **数据集成**<br>(`models/integration.py`) | `excel_import_batches` | `ExcelImportBatch` | ABC Excel 上传批次、预览快照与导入统计计数 |
+| **数据集成**<br>(`models/integration.py`) | `excel_import_batches` | `ExcelImportBatch` | ABC Excel 上传批次、OSS 原件归档元数据（`oss_bucket`、`oss_object_key`、`file_sha256`、`file_size_bytes`）、预览快照与导入统计计数 |
 | | `excel_import_unmatched_records` | `ExcelImportUnmatchedRecord` | 待匹配或冲突的外部交易队列（支持人工绑定或忽略） |
 | | `integration_logs` | `IntegrationLog` | 导入异常、医保自费拆分不一致与储值余额不足对账日志 |
 | **经营与 AI**<br>(`models/analytics.py`) | `reports` | `Report` | 周报/月报统计指标 JSON 快照与自动经营摘要 |
@@ -270,7 +270,7 @@ docker compose up --build
 - **客户资产管理**：`GET /api/customers`、`GET /api/customers/meta`、`GET /api/customers/owner-summary`、`GET /api/customers/{customer_id}`、`POST /api/customers/{customer_id}/reassign`、`PATCH /api/customers/{customer_id}/assignment`、`POST /api/customers/bulk-assignment`、`POST /api/customers/{customer_id}/void`（客户作废）、`GET /api/customers/assignment-history`
 - **客户标签与账号**：`PUT /api/customers/{customer_id}/tags`、`GET / POST / PATCH / DELETE /api/tags`、`GET /api/users`、`PATCH /api/users/{user_id}/status`
 - **消费与订单导出**：`GET /api/orders`、`GET /api/orders/customer-summary`、`GET /api/orders/export`（CSV 导出）
-- **ABC Excel 导入**：`POST /api/excel-imports/abc/preview`、`POST /api/excel-imports/abc/{batch_id}/confirm`、`GET /api/excel-imports/abc/history`、`GET /api/excel-imports/abc/unmatched`、`POST /api/excel-imports/abc/unmatched/{record_id}/bind`、`POST /api/excel-imports/abc/unmatched/{record_id}/ignore`
+- **ABC Excel 导入与原表归档**：`POST /api/excel-imports/abc/preview`（上传即归档至阿里云 OSS）、`POST /api/excel-imports/abc/{batch_id}/confirm`、`GET /api/excel-imports/abc/history`、`GET /api/excel-imports/abc/{batch_id}/download`（获取原文件签名下载链接）、`GET /api/excel-imports/abc/unmatched`、`POST /api/excel-imports/abc/unmatched/{record_id}/bind`、`POST /api/excel-imports/abc/unmatched/{record_id}/ignore`
 - **只读 AI 经营助手**：`POST /api/agents/business-analysis/query`（管理员）
 
 ---

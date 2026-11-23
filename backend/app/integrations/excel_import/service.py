@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
+import hashlib
 from typing import Any
 
 from sqlalchemy import and_, func, or_, select, update
@@ -287,6 +288,11 @@ def _batch_dict(batch: ExcelImportBatch) -> dict[str, Any]:
     return {
         "id": batch.id,
         "file_name": batch.file_name,
+        "oss_stored": bool(batch.oss_object_key),
+        "oss_bucket": batch.oss_bucket,
+        "oss_object_key": batch.oss_object_key,
+        "file_sha256": batch.file_sha256,
+        "file_size_bytes": batch.file_size_bytes,
         "uploaded_by": batch.uploaded_by_id,
         "uploaded_at": batch.uploaded_at,
         "status": batch.status,
@@ -438,7 +444,18 @@ def serialize_unmatched_groups(records: list[ExcelImportUnmatchedRecord]) -> lis
     return result
 
 
-def preview_import(db: Session, file_name: str, data: bytes, uploaded_by_id: int, max_rows: int = 50000) -> ExcelImportBatch:
+def preview_import(
+    db: Session,
+    file_name: str,
+    data: bytes,
+    uploaded_by_id: int,
+    max_rows: int = 50000,
+    *,
+    oss_bucket: str | None = None,
+    oss_object_key: str | None = None,
+    file_sha256: str | None = None,
+    file_size_bytes: int | None = None,
+) -> ExcelImportBatch:
     result = parse_excel(data, file_name)
     if result.total_rows > max_rows:
         raise ValueError(f"Excel 行数超过限制（最多 {max_rows} 行）")
@@ -447,6 +464,10 @@ def preview_import(db: Session, file_name: str, data: bytes, uploaded_by_id: int
     preview_data["evaluations"] = evaluations
     batch = ExcelImportBatch(
         file_name=file_name,
+        oss_bucket=oss_bucket,
+        oss_object_key=oss_object_key,
+        file_sha256=file_sha256 or hashlib.sha256(data).hexdigest(),
+        file_size_bytes=file_size_bytes if file_size_bytes is not None else len(data),
         uploaded_by_id=uploaded_by_id,
         status="preview",
         sheet_names=result.sheet_names,
@@ -1113,7 +1134,7 @@ def confirm_import(db: Session, batch: ExcelImportBatch, confirmed_by_id: int) -
         event_type="excel_import",
         external_id=str(batch.id),
         status=batch.status,
-        raw_data={"batch_id": batch.id, "file_name": batch.file_name, "sheet_names": batch.sheet_names or []},
+        raw_data={"batch_id": batch.id, "file_name": batch.file_name, "oss_object_key": batch.oss_object_key, "sheet_names": batch.sheet_names or []},
         error_message=batch.error_message,
         started_at=batch.uploaded_at,
         finished_at=batch.confirmed_at,

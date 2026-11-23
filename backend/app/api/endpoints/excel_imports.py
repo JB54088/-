@@ -6,7 +6,20 @@ from sqlalchemy.orm import Session, selectinload
 
 from ...core.config import settings
 from ...db.session import get_db
-from ...integrations.excel_import.service import bind_unmatched, confirm_import, ignore_unmatched_group, preview_import, serialize_batch, serialize_unmatched_groups
+from ...integrations.excel_import.service import (
+    bind_unmatched,
+    confirm_import,
+    ignore_unmatched_group,
+    preview_import,
+    serialize_batch,
+    serialize_unmatched_groups,
+)
+from ...integrations.oss import (
+    OssStorageError,
+    compute_sha256,
+    generate_excel_download_url,
+    upload_excel_to_oss,
+)
 from ...models import Customer, ExcelImportBatch, ExcelImportUnmatchedRecord, User
 from ...schemas import ExcelImportBindRequest, ExcelImportIgnoreRequest
 from ...services.query_scopes import formal_customer_condition
@@ -32,8 +45,24 @@ async def preview_abc_excel(
 ):
     content = await upload.read()
     _validate_upload(upload, content)
+    file_name = upload.filename or "abc.xlsx"
     try:
-        batch = preview_import(db, upload.filename or "abc.xlsx", content, operator.id, settings.excel_max_rows)
+        oss_result = upload_excel_to_oss(content, file_name)
+    except OssStorageError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    try:
+        batch = preview_import(
+            db,
+            file_name,
+            content,
+            operator.id,
+            settings.excel_max_rows,
+            oss_bucket=oss_result.bucket if oss_result else None,
+            oss_object_key=oss_result.object_key if oss_result else None,
+            file_sha256=oss_result.sha256 if oss_result else compute_sha256(content),
+            file_size_bytes=len(content),
+        )
         db.commit()
     except ValueError as exc:
         db.rollback()
@@ -85,10 +114,6 @@ def unmatched_records(
         query = query.where(ExcelImportUnmatchedRecord.status == status)
     else:
         query = query.where(ExcelImportUnmatchedRecord.status.in_(["pending", "conflict"]))
-    # A legacy row can retain a pending status even after its customer was
-    # matched by an older import path.  Keep placeholder pointers visible for
-    # manual resolution, but never expose rows already attached to a formal
-    # customer in the pending queue.
     query = query.where(
         or_(
             ExcelImportUnmatchedRecord.customer_id.is_(None),
@@ -137,6 +162,29 @@ def ignore_excel_record(record_id: int, payload: ExcelImportIgnoreRequest, db: S
         db.rollback()
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     return {"message": "Excel 记录已忽略", "record_id": record_id, "status": record.status}
+
+
+@router.get("/abc/{batch_id}/download")
+def download_import_excel(batch_id: int, db: Session = Depends(get_db), operator: User = Depends(require_admin)):
+    batch = db.get(ExcelImportBatch, batch_id)
+    if not batch:
+        raise HTTPException(status_code=404, detail="导入批次不存在")
+    if not batch.oss_object_key:
+        raise HTTPException(status_code=404, detail="该导入批次未归档原始文件")
+    try:
+        download_url = generate_excel_download_url(
+            batch.oss_object_key,
+            batch.file_name,
+            bucket_name=batch.oss_bucket,
+        )
+    except OssStorageError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return {
+        "batch_id": batch.id,
+        "file_name": batch.file_name,
+        "download_url": download_url,
+        "expires_in": settings.oss_url_expire_seconds,
+    }
 
 
 @router.get("/abc/{batch_id}")

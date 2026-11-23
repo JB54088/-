@@ -42,11 +42,33 @@ if [[ ! "$app_origin" =~ ^https?://[^[:space:]]+$ ]]; then
   exit 1
 fi
 
+read -r -p "Aliyun RDS host (e.g. pgm-xxxx.pg.rds.aliyuncs.com): " rds_url
+read -r -p "Aliyun RDS port [5432]: " rds_port
+rds_port="${rds_port:-5432}"
+read -r -p "Aliyun RDS database name [customer_assets]: " rds_db
+rds_db="${rds_db:-customer_assets}"
+read -r -p "Aliyun RDS username: " rds_user
+IFS= read -r -s -p "Aliyun RDS password: " rds_pwd
+printf '\n'
+read -r -p "Aliyun RDS CA filename in deploy/certs/ (optional, press Enter to skip): " rds_ca_name
+rds_ca_file=""
+if [[ -n "$rds_ca_name" ]]; then
+  rds_ca_file="/app/certs/$rds_ca_name"
+fi
+
+read -r -p "Aliyun OSS bucket name (optional, press Enter to skip): " oss_bucket
+read -r -p "Aliyun OSS region [oss-cn-beijing]: " oss_region
+oss_region="${oss_region:-oss-cn-beijing}"
+oss_ak_id=""
+oss_ak_secret=""
+if [[ -n "$oss_bucket" ]]; then
+  read -r -p "Aliyun AccessKey ID: " oss_ak_id
+  IFS= read -r -s -p "Aliyun AccessKey Secret: " oss_ak_secret
+  printf '\n'
+fi
+
 umask 077
 cat > "$ENV_FILE" <<EOF
-POSTGRES_DB=customer_assets
-POSTGRES_USER=customer_assets
-POSTGRES_PASSWORD=$(openssl rand -hex 32)
 JWT_SECRET_KEY=$(openssl rand -hex 32)
 JWT_EXPIRE_MINUTES=720
 INITIAL_ADMIN01_PASSWORD=$admin01
@@ -59,6 +81,21 @@ EXCEL_MAX_FILE_SIZE_MB=20
 EXCEL_MAX_ROWS=50000
 AI_PROVIDER=mock
 AI_MODEL=business-analysis-mock
+
+# Aliyun RDS PostgreSQL
+ALIYUN_RDS_URL=$rds_url
+ALIYUN_RDS_PORT=$rds_port
+ALIYUN_RDS_DB_NAME=$rds_db
+ALIYUN_RDS_USERNAME=$rds_user
+ALIYUN_RDS_PWD=$rds_pwd
+ALIYUN_RDS_CA_FILE=$rds_ca_file
+
+# Aliyun OSS
+OSS_BUCKET_NAME=$oss_bucket
+ALIYUN_ACCESS_KEY_ID=$oss_ak_id
+ALIYUN_ACCESS_KEY=$oss_ak_secret
+ALIYUN_OSS_REGION=$oss_region
+OSS_INTERNAL=true
 EOF
 chmod 600 "$ENV_FILE"
-echo "Created deploy/production.env with mode 600. Keep it private; this script will not print the passwords."
+echo "Created deploy/production.env with mode 600. Keep it private; this script will not print secrets."
