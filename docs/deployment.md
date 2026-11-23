@@ -1,7 +1,7 @@
 # 阿里云 ECS + RDS + OSS 生产部署指南
 
 生产环境（[`docker-compose.production.yml`](../docker-compose.production.yml)）采用**计算与存储分离**架构：
-- **计算与入口层（ECS）**：私有 Compose 网络内仅运行 `backend`（FastAPI）、`frontend`（Next.js）和 `proxy`（Nginx）。Nginx 默认仅绑定宿主机回环地址 `127.0.0.1:8080`，`backend`（8000）与 `frontend`（3000）不暴露宿主机端口。
+- **计算与入口层（ECS）**：私有 Compose 网络内仅运行 `backend`（FastAPI）、`frontend`（Next.js）和 `proxy`（Nginx）。Compose 内的 Nginx 默认绑定宿主机回环地址 `127.0.0.1:8080`（可用 `APP_PROXY_PORT` 调整），`backend`（8000）与 `frontend`（3000）不暴露宿主机端口。
 - **关系型数据库层（阿里云 RDS PostgreSQL）**：不再启动本地数据库容器，后端通过内网直连阿里云 RDS，启动时自动执行 Alembic 数据库迁移与基础字典初始化。
 - **原文件归档层（阿里云 OSS）**：管理员在工作台上传 ABC Excel 时，原始 `.xlsx` / `.xls` 文件即刻归档至阿里云私有 OSS Bucket，并在导入预览与导入历史页支持通过短效签名链接下载原文件。
 
@@ -18,13 +18,13 @@
 
 ## 2. 环境变量配置
 
-你可以直接使用已配置好的根目录 `.env`（启动时指定 `--env-file .env`），或使用交互脚本生成独立的 `deploy/production.env`（启动时指定 `--env-file deploy/production.env`）：
+生产环境统一使用项目根目录的 `.env`。该文件包含数据库密码、JWT 密钥和 OSS 密钥，不要提交到 Git。已有部署迁移时，将原环境文件复制或移动为根目录 `.env`，保留原有 `JWT_SECRET_KEY`；不要为了改文件名重新生成密钥。首次部署且没有现成环境文件时，才运行交互脚本：
 
 ```bash
-# 方式 A：若已在 .env 中填好配置，确保权限安全即可直接使用
+# 已有根目录 .env 时，只需确保权限安全
 chmod 600 .env
 
-# 方式 B：全新部署交互生成 deploy/production.env
+# 首次部署且根目录 .env 不存在时，生成配置
 bash deploy/init-production-env.sh
 ```
 
@@ -34,6 +34,7 @@ bash deploy/init-production-env.sh
 # 站点来源与密钥
 JWT_SECRET_KEY=<高强度随机密钥，迁移旧库时保留原值>
 APP_ORIGIN=https://your-domain.example.com
+APP_PROXY_PORT=8080
 
 # Aliyun ECS / OSS
 ALIYUN_ECS_ADDR=xxxx
@@ -56,7 +57,7 @@ ALIYUN_RDS_CA_FILE=/app/certs/ApsaraDB-CA-Chain.pem
 
 ## 3. 启动与离线镜像部署
 
-### 在线构建启动（使用 `.env` 或 `deploy/production.env`）
+### 在线构建启动
 
 ```bash
 cd /opt/customer-assets
@@ -65,7 +66,9 @@ docker compose --env-file .env -f docker-compose.production.yml ps
 curl -fsS http://127.0.0.1:8080/health
 ```
 
-> 若使用 `deploy/production.env`，将上面命令中的 `--env-file .env` 替换为 `--env-file deploy/production.env` 即可。
+`APP_PROXY_PORT` 默认为 `8080`，只绑定 ECS 本机回环地址。宿主机已有 Nginx 监听 `80/443` 通常不会与它冲突；给新域名增加一个虚拟主机，并反向代理到 `127.0.0.1:8080` 即可。如果宿主机上确实已有进程占用 `8080`，在 `.env` 中设置空闲端口（例如 `APP_PROXY_PORT=18080`），并让新虚拟主机代理到 `127.0.0.1:18080`。不要覆盖现有应用的 Nginx 配置。
+
+本机健康检查默认使用 `http://127.0.0.1:8080/health`；设置了其他 `APP_PROXY_PORT` 时，将检查地址中的端口替换为该值。
 
 ### ECS 无法访问 Docker Hub 时的离线镜像启动
 
