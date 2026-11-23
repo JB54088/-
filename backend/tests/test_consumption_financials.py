@@ -3,7 +3,7 @@ from datetime import datetime
 from decimal import Decimal
 from types import SimpleNamespace
 
-from app.consumption import calculate_customer_consumption_summary, calculate_transaction_financials
+from app.services.consumption import calculate_customer_consumption_summary, calculate_transaction_financials
 
 
 def order_with_item(*, item_amount, paid, insurance, self_pay, deduction=Decimal("0")):

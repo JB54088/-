@@ -2,10 +2,10 @@ import unittest
 from datetime import datetime
 from decimal import Decimal
 
-from app.consumption import calculate_customer_consumption_summary, calculate_transaction_financials
+from app.db.session import SessionLocal
 from app.models import Customer, Order, OrderItem
-from app.database import SessionLocal
-from app.balance import resolve_is_refund
+from app.services.balance import resolve_is_refund
+from app.services.consumption import calculate_customer_consumption_summary, calculate_transaction_financials
 
 
 class RefundDirectionTest(unittest.TestCase):

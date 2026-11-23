@@ -16,7 +16,7 @@ import json
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
-from app.database import SessionLocal
+from app.db.session import SessionLocal
 from app.models import (
     AgentQueryLog,
     Customer,

@@ -5,10 +5,10 @@ from uuid import uuid4
 
 from sqlalchemy import select
 
-from app.database import SessionLocal
-from app.duplicate_leads import find_duplicate_customer
+from app.db.session import SessionLocal
 from app.models import Customer, DuplicateLeadReport, User
-from app.utils import normalize_phone
+from app.services.duplicate_leads import find_duplicate_customer
+from app.services.query_scopes import normalize_phone
 
 
 class DuplicateLeadReportTest(unittest.TestCase):

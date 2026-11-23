@@ -6,8 +6,8 @@ from uuid import uuid4
 from fastapi import HTTPException
 from pydantic import ValidationError
 
+from app.api.endpoints.auth import apply_profile_update, update_my_profile
 from app.models import User
-from app.routers.auth import apply_profile_update, update_my_profile
 from app.schemas import UserProfileUpdate
 
 

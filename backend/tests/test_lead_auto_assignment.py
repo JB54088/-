@@ -10,7 +10,8 @@ from sqlalchemy import create_engine, event, select
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
-from app.database import Base
+from app.api.endpoints.leads import create_lead
+from app.db.base import Base
 from app.integrations.excel_import.service import confirm_import, preview_import
 from app.models import (
     Customer,
@@ -20,9 +21,8 @@ from app.models import (
     Order,
     User,
 )
-from app.routers.leads import create_lead
 from app.schemas import LeadCreate
-from app.utils import customer_scope_condition
+from app.services.query_scopes import customer_scope_condition
 
 
 def _abc_workbook(external_id: str, name: str, phone: str, order_id: str) -> bytes:

@@ -9,3 +9,4 @@ python-multipart==0.0.20
 alembic==1.14.0
 openpyxl==3.1.5
 xlrd==2.0.1
+oss2==2.19.1

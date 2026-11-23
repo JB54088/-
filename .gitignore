@@ -3,6 +3,8 @@
 .env.*
 !.env.example
 deploy/production.env
+deploy/certs/*
+!deploy/certs/.gitkeep
 
 # OS / editor files
 .DS_Store
@@ -37,3 +39,6 @@ backups/
 *.xlsx
 *.xls
 *.csv
+
+# certs
+certs/

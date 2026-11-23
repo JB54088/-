@@ -11,8 +11,8 @@ from typing import Any
 import openpyxl
 import xlrd
 
-from ...utils import normalize_phone
-from ...balance import resolve_balance_payment_amount, resolve_is_refund
+from ...services.balance import resolve_balance_payment_amount, resolve_is_refund
+from ...services.query_scopes import normalize_phone
 
 
 class ExcelParseError(ValueError):

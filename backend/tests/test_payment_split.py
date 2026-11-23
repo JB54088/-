@@ -12,14 +12,13 @@ from uuid import uuid4
 
 from sqlalchemy import func, select
 
-from app.consumption import effective_revenue_expression, effective_self_pay_expression
-from app.database import SessionLocal
-from app.integrations.data_pool.schemas import DataPoolOrderPayload
+from app.api.endpoints.reports import bounds, build_report
+from app.db.session import SessionLocal
+from app.integrations.data_pool.schemas import DataPoolCustomerPayload, DataPoolOrderPayload
 from app.integrations.data_pool.service import resolve_payment_split, upsert_customer_from_pool, upsert_order_from_pool
 from app.models import Customer, Order, User
-from app.utils import consumption_order_condition, formal_customer_condition
-from app.integrations.data_pool.schemas import DataPoolCustomerPayload
-from app.routers.reports import bounds, build_report
+from app.services.consumption import effective_revenue_expression, effective_self_pay_expression
+from app.services.query_scopes import consumption_order_condition, formal_customer_condition
 
 
 class PaymentSplitTest(unittest.TestCase):
