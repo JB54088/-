@@ -2,10 +2,10 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-ENV_FILE="$ROOT_DIR/deploy/production.env"
+ENV_FILE="$ROOT_DIR/.env"
 
 if [[ -e "$ENV_FILE" ]]; then
-  echo "Refusing to overwrite deploy/production.env. Back it up or remove it intentionally first." >&2
+  echo "Refusing to overwrite .env. Back it up or remove it intentionally first." >&2
   exit 1
 fi
 
@@ -98,4 +98,4 @@ ALIYUN_OSS_REGION=$oss_region
 OSS_INTERNAL=true
 EOF
 chmod 600 "$ENV_FILE"
-echo "Created deploy/production.env with mode 600. Keep it private; this script will not print secrets."
+echo "Created .env with mode 600. Keep it private; this script will not print secrets."
