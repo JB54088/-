@@ -9,13 +9,13 @@ from uuid import uuid4
 
 from sqlalchemy import select
 
-from app.database import SessionLocal
-from app.duplicate_leads import find_duplicate_customer
+from app.api.endpoints.customers import _apply_customer_void
+from app.db.session import SessionLocal
 from app.integrations.excel_import.service import link_pending_external_customer
 from app.models import Customer, CustomerPoolMatchHistory, User
-from app.routers.customers import _apply_customer_void
 from app.schemas import CustomerVoidRequest
-from app.utils import formal_customer_condition
+from app.services.duplicate_leads import find_duplicate_customer
+from app.services.query_scopes import formal_customer_condition
 
 
 class CustomerVoidTest(unittest.TestCase):

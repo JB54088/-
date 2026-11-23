@@ -5,10 +5,10 @@ from uuid import uuid4
 
 from sqlalchemy import func, select
 
-from app.balance import sync_order_balance
-from app.consumption import calculate_customer_consumption_summary
-from app.database import SessionLocal
+from app.db.session import SessionLocal
 from app.models import Customer, CustomerBalanceTransaction, IntegrationLog, Order
+from app.services.balance import sync_order_balance
+from app.services.consumption import calculate_customer_consumption_summary
 
 
 class CustomerBalanceTest(unittest.TestCase):

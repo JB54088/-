@@ -8,10 +8,10 @@ from typing import Any
 from sqlalchemy import and_, func, or_, select, update
 from sqlalchemy.orm import Session, selectinload
 
-from ...consumption import consumption_count_query, consumption_value_expression
-from ...balance import rebuild_customer_balance, resolve_balance_operation, resolve_balance_payment_amount, resolve_is_refund, sync_order_balance
 from ...models import Customer, CustomerPoolMatchHistory, Department, ExcelImportBatch, ExcelImportUnmatchedRecord, IntegrationLog, Order, OrderItem, Store
-from ...utils import consumption_key_expression, consumption_order_condition, is_external_placeholder, normalize_customer_name, normalize_phone
+from ...services.balance import rebuild_customer_balance, resolve_balance_operation, resolve_balance_payment_amount, resolve_is_refund, sync_order_balance
+from ...services.consumption import consumption_count_query, consumption_value_expression
+from ...services.query_scopes import consumption_key_expression, consumption_order_condition, is_external_placeholder, normalize_customer_name, normalize_phone
 from .parser import NormalizedTransaction, ParseResult, parse_excel
 
 

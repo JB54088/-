@@ -14,7 +14,7 @@ from uuid import uuid4
 
 from sqlalchemy import select
 
-from app.database import SessionLocal
+from app.db.session import SessionLocal
 from app.integrations.data_pool.schemas import DataPoolCustomerPayload, DataPoolOrderPayload
 from app.integrations.data_pool.service import manually_match_customer, upsert_customer_from_pool, upsert_order_from_pool
 from app.models import Customer, CustomerPoolMatchCandidate, CustomerTag, CustomerTagRelation, Order, User

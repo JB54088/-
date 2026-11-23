@@ -33,10 +33,7 @@ services:
       EXCEL_MAX_FILE_SIZE_MB: ${EXCEL_MAX_FILE_SIZE_MB:-20}
       EXCEL_MAX_ROWS: ${EXCEL_MAX_ROWS:-50000}
       AI_PROVIDER: ${AI_PROVIDER:-mock}
-      AI_BASE_URL: ${AI_BASE_URL:-}
-      AI_API_KEY: ${AI_API_KEY:-}
       AI_MODEL: ${AI_MODEL:-business-analysis-mock}
-      AI_MOCK_MODE: ${AI_MOCK_MODE:-true}
       TZ: Asia/Shanghai
     expose:
       - "8000"

@@ -19,8 +19,8 @@ from typing import Any
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
-from app.balance import rebuild_customer_balance
-from app.database import SessionLocal
+from app.db.session import SessionLocal
+from app.services.balance import rebuild_customer_balance
 from app.models import (
     Customer,
     CustomerAssignmentHistory,

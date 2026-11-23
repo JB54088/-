@@ -13,7 +13,7 @@ from ...models import (
     OrderItem,
     Store,
 )
-from ...utils import normalize_phone
+from ...services.query_scopes import normalize_phone
 from .schemas import DataPoolCustomerPayload, DataPoolOrderPayload
 
 

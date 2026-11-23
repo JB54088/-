@@ -14,12 +14,12 @@ from uuid import uuid4
 from openpyxl import Workbook
 from sqlalchemy import func, select
 
-from app.database import SessionLocal
-from app.consumption import calculate_customer_consumption_summary
+from app.api.endpoints.excel_imports import unmatched_records
+from app.db.session import SessionLocal
 from app.integrations.excel_import.parser import parse_excel
 from app.integrations.excel_import.service import confirm_import, link_pending_external_customer, preview_import
 from app.models import Customer, CustomerPoolMatchHistory, ExcelImportUnmatchedRecord, IntegrationLog, Order, OrderItem, User
-from app.routers.excel_imports import unmatched_records
+from app.services.consumption import calculate_customer_consumption_summary
 
 
 def workbook_bytes(external_customer_id: str, phone: str, transaction_id: str, mismatch: bool = False) -> bytes:

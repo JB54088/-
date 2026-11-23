@@ -58,10 +58,7 @@ APP_ORIGIN=$app_origin
 EXCEL_MAX_FILE_SIZE_MB=20
 EXCEL_MAX_ROWS=50000
 AI_PROVIDER=mock
-AI_BASE_URL=
-AI_API_KEY=
 AI_MODEL=business-analysis-mock
-AI_MOCK_MODE=true
 EOF
 chmod 600 "$ENV_FILE"
 echo "Created deploy/production.env with mode 600. Keep it private; this script will not print the passwords."
